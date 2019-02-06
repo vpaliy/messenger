@@ -2,6 +2,7 @@ package db
 
 import (
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/vpaliy/telex/model"
 	"os"
 )
@@ -14,7 +15,7 @@ type Config struct {
 	LogMode            bool
 }
 
-func New(config Config) (*gorm.DB, error) {
+func New(config *Config) (*gorm.DB, error) {
 	fullPath := config.Path + "/" + config.Name
 	db, err := gorm.Open(config.Type, fullPath)
 	if err != nil {
@@ -26,7 +27,7 @@ func New(config Config) (*gorm.DB, error) {
 }
 
 func CreateTestConfig() *Config {
-	config := db.Config{
+	config := Config{
 		Type:               "sqlite3",
 		Path:               ".",
 		Name:               "test.db",

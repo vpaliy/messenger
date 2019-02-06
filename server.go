@@ -2,36 +2,28 @@ package main
 
 import (
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
-	"github.com/labstack/gommon/log"
 	"github.com/vpaliy/telex/db"
 	"github.com/vpaliy/telex/handler"
+	"github.com/vpaliy/telex/router"
 	"github.com/vpaliy/telex/users"
 )
 
-func registerHandlers(g *echo.Group, hs ...*handler.Handler) {
+func registerHandlers(g *echo.Group, hs ...handler.Handler) {
 	for _, handler := range hs {
 		handler.Register(g)
 	}
 }
 
-func createEcho() *echo.Echo {
-	e := echo.New()
-	e.Logger.SetLevel(log.ERROR)
-	e.Use(middleware.Logger())
-	return e
-}
-
 func main() {
-	e := createEcho()
+	e := router.New()
 	api := e.Group("/api")
 
 	database, err := db.New(db.CreateTestConfig())
 	if err != nil {
-		e.Logger.Fatal(error)
+		e.Logger.Fatal(err)
 	}
 	database.AutoMigrate()
 
-	registerHandlers(api, nil)
-	e.Logger.Fatal(e.Start(":5000"))
+	registerHandlers(api, users.NewHandler(database))
+	e.Logger.Fatal(e.Start("127.0.0.1:8000"))
 }
