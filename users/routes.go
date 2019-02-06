@@ -13,7 +13,6 @@ func (h *Handler) Login(c echo.Context) error {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
 	query := store.NewQuery(map[string]interface{}{
-		"email":    request.Username,
 		"username": request.Username,
 	})
 	user, err := h.userStore.Get(query)

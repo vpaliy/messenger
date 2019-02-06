@@ -22,7 +22,9 @@ func main() {
 	if err != nil {
 		e.Logger.Fatal(err)
 	}
-	database.AutoMigrate()
+
+	defer database.Close()
+	db.AutoMigrate(database)
 
 	registerHandlers(api, users.NewHandler(database))
 	e.Logger.Fatal(e.Start("127.0.0.1:8000"))

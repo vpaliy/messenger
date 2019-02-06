@@ -28,6 +28,8 @@ type userRegisterRequest struct {
 	Username string `json:"username" validate:"required"`
 	Email    string `json:"email" validate:"required"`
 	Password string `json:"password" validate:"required"`
+	FullName string `json:"fullName"`
+	Bio      string `json:"bio"`
 }
 
 func newUserRegisterRequest() *userRegisterRequest {
@@ -48,6 +50,8 @@ func (r *userRegisterRequest) toUser() *model.User {
 	user := new(model.User)
 	user.Username = r.Username
 	user.Email = r.Email
+	user.FullName = r.FullName
+	user.Bio = r.Bio
 	if err := user.SetPassword(r.Password); err != nil {
 		return nil
 	}

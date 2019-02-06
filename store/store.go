@@ -2,7 +2,7 @@ package store
 
 type (
 	Query struct {
-		params []*Param
+		params []Param
 	}
 
 	Param struct {
@@ -12,7 +12,8 @@ type (
 )
 
 func NewQuery(m map[string]interface{}) Query {
-	query := Query{make([]*Param, len(m))}
+	// TODO: remove this from here
+	query := Query{make([]Param, 0)}
 	for k, v := range m {
 		query.Append(k, v)
 	}
@@ -20,7 +21,7 @@ func NewQuery(m map[string]interface{}) Query {
 }
 
 func (q *Query) Append(key string, value interface{}) {
-	q.params = append(q.params, &Param{key, value})
+	q.params = append(q.params, Param{key, value})
 }
 
 func (q *Query) ToMap() map[string]interface{} {

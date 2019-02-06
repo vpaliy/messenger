@@ -38,14 +38,12 @@ func CreateTestConfig() *Config {
 }
 
 func DropTestDB() error {
-	if err := os.Remove("./../realworld_test.db"); err != nil {
+	if err := os.Remove("./test.db"); err != nil {
 		return err
 	}
 	return nil
 }
 
 func AutoMigrate(db *gorm.DB) {
-	db.AutoMigrate(
-		&model.User{},
-	)
+	db.AutoMigrate(&model.User{})
 }
