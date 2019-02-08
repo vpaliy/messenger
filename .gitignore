@@ -5,6 +5,8 @@
 *.dll
 *.so
 *.dylib
+*.db
+telex
 
 # Test binary, build with `go test -c`
 *.test

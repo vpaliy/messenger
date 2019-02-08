@@ -14,6 +14,7 @@ type (
 		Email        string  `gorm:"column:email;type:varchar(100);unique_index"`
 		Bio          string  `gorm:"column:bio;size:1024"`
 		Image        *string `gorm:"column:image"`
+		ImageThumb   *string `gorm:"column:imageThumb"`
 		PasswordHash string  `gorm:"column:password;not null"`
 	}
 )
