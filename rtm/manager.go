@@ -1,10 +1,9 @@
 package rtm
 
-import "sync"
-
-type Repository interface {
-	FetchChannel(channel string) (*Channel, error)
-}
+import (
+	"log"
+	"sync"
+)
 
 type clientEvent struct {
 	client  *Client
@@ -18,22 +17,21 @@ type ChannelManager interface {
 }
 
 type channelManager struct {
-	repository *Repository
+	repository Repository
 	channels   sync.Map
 	join       chan clientEvent
 	leave      chan clientEvent
 }
 
-func (cm *channelManager) hasChannel(channel string) bool {
-	res := cm.getChannel(channel)
-	return res != nil
-}
-
-func (cm *channelManager) getChannel(channel string) *Channel {
+func (cm *channelManager) getChannel(channel string) (*Channel, error) {
 	if value, ok := cm.channels.Load(channel); ok {
-		return value.(*Channel)
+		return value.(*Channel), nil
 	}
-	return nil
+	value, err := cm.repository.FetchChannel(channel)
+	if err != nil {
+		cm.channels.Store(channel, value)
+	}
+	return value, err
 }
 
 func (cm *channelManager) Join(channel string, client *Client) {
@@ -47,15 +45,27 @@ func (cm *channelManager) Leave(channel string, client *Client) {
 func (cm *channelManager) Run() {
 	for {
 		select {
-		case <-cm.join:
-			// TODO:
-		case <-cm.leave:
-			// TODO:
+		case event := <-cm.join:
+			channel, err := cm.getChannel(event.channel)
+			if err != nil {
+				log.Println("manager.Run:", err)
+				// TODO: notify the client
+				continue
+			}
+			channel.register <- event.client
+		case event := <-cm.leave:
+			channel, err := cm.getChannel(event.channel)
+			if err != nil {
+				log.Println("manager.Run:", err)
+				// TODO: notify the client
+				continue
+			}
+			channel.unregister <- event.client
 		}
 	}
 }
 
-func NewChannelManager(repository *Repository) ChannelManager {
+func NewChannelManager(repository Repository) ChannelManager {
 	return &channelManager{
 		repository: repository,
 		join:       make(chan clientEvent),

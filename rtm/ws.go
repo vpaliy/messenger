@@ -22,7 +22,7 @@ type WebSocketConfig struct {
 }
 
 var (
-	DefaultWebSocketConfig = WebSocketConfig{
+	DefaultWebSocketConfig = &WebSocketConfig{
 		MaxMessageSize: 512,
 		WriteWait:      10 * time.Second,
 		PongWait:       60 * time.Second,
@@ -35,14 +35,14 @@ type WSocket struct {
 	mutex  sync.RWMutex
 	conn   *websocket.Conn
 	config *WebSocketConfig
-	ticker *time.Timer
+	ticker *time.Ticker
 	closed bool
 }
 
-func newWebSocket(conn *websocket.Conn, config *WebSocketConfig) *WSocket {
+func NewWebSocket(config *WebSocketConfig) *WSocket {
 	return &WSocket{
-		conn:   conn,
 		config: config,
+		ticker: time.NewTicker(config.PingPeriod),
 	}
 }
 
@@ -56,6 +56,9 @@ func (ws *WSocket) read() ([]byte, error) {
 
 func (ws *WSocket) write(messageType int, message interface{}) error {
 	ws.conn.SetWriteDeadline(time.Now().Add(ws.config.WriteWait))
+	if message == websocket.CloseMessage {
+		return ws.conn.WriteMessage(websocket.CloseMessage, message.([]byte))
+	}
 	w, err := ws.conn.NextWriter(messageType)
 	if err != nil {
 		return err
@@ -66,6 +69,11 @@ func (ws *WSocket) write(messageType int, message interface{}) error {
 		return err
 	}
 	return nil
+}
+
+func (ws *WSocket) ping() error {
+	ws.conn.SetWriteDeadline(time.Now().Add(ws.config.WriteWait))
+	return ws.conn.WriteMessage(websocket.PingMessage, nil)
 }
 
 func (ws *WSocket) close() error {
@@ -81,7 +89,7 @@ func (ws *WSocket) close() error {
 	return ws.conn.Close()
 }
 
-func (ws *WSocket) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+func (ws *WSocket) obtainConn(rw http.ResponseWriter, r *http.Request) error {
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:    ws.config.ReadBufferSize,
 		WriteBufferSize:   ws.config.WriteBufferSize,
@@ -91,7 +99,9 @@ func (ws *WSocket) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(rw, r, nil)
 	if err != nil {
 		log.Print(err)
+		return err
 	}
+	ws.conn = conn
 	if ws.config.EnableCompression {
 		err := conn.SetCompressionLevel(ws.config.CompressionLevel)
 		if err != nil {
@@ -104,4 +114,58 @@ func (ws *WSocket) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		conn.SetReadDeadline(time.Now().Add(ws.config.PongWait))
 		return nil
 	})
+	return nil
+}
+
+func (s *Client) readPump() {
+	defer func() {
+		// TODO: unregister from hub
+		s.socket.close()
+	}()
+	// listen
+	for {
+		message, err := s.socket.read()
+		if err != nil {
+			log.Println("client.readPump:", err)
+			break
+		}
+		s.HandleMessage(message)
+	}
+}
+
+func (s *Client) writePump() {
+	// close it when finished
+	defer s.socket.close()
+	ticker := s.socket.ticker
+
+	for {
+		select {
+		case <-s.close:
+			log.Println("client.writePump:", "closing")
+			return
+		case message, ok := <-s.send:
+			if !ok {
+				s.socket.write(websocket.CloseMessage, []byte{})
+				return
+			}
+			if err := s.socket.write(websocket.TextMessage, message); err != nil {
+				log.Println("client.writePump:", err)
+				return
+			}
+		case <-ticker.C:
+			if err := s.socket.ping(); err != nil {
+				log.Println("client.writePump:", err)
+				return
+			}
+		}
+	}
+}
+
+func (c *Client) ServeHTTP(rw http.ResponseWriter, r *http.Request) error {
+	if err := c.socket.obtainConn(rw, r); err != nil {
+		return err
+	}
+	go c.readPump()
+	go c.writePump()
+	return nil
 }

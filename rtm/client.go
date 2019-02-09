@@ -2,6 +2,7 @@ package rtm
 
 import (
 	"encoding/json"
+	"log"
 	"sync"
 	"time"
 )
@@ -15,6 +16,7 @@ type Client struct {
 	send          chan interface{}
 	manager       ChannelManager
 	handler       EventHandler
+	close         chan struct{}
 }
 
 type Subscription struct {
@@ -22,55 +24,12 @@ type Subscription struct {
 	broadcast chan<- *ResponseMessage
 }
 
-func NewClient(socket *WSocket, manager ChannelManager, handler EventHandler) *Client {
+func NewClient(socket *WSocket, manager ChannelManager) *Client {
 	return &Client{
 		socket:        socket,
 		subscriptions: make(map[string]*Subscription),
 		send:          make(chan interface{}),
 		manager:       manager,
-		handler:       handler,
-	}
-}
-
-func (s *Client) readPump() {
-	defer func() {
-		// TODO: unregister from hub
-		s.socket.close()
-	}()
-	// listen
-	for {
-		message, err := s.socket.read()
-		if err != nil {
-			break
-		}
-		s.HandleMessage(message)
-	}
-}
-
-func (s *Client) writePump() {
-	config := s.socket.config
-	ticker := time.NewTicker(config.pingPeriod)
-	// close it when finished
-	defer func() {
-		ticker.Stop()
-		s.socket.close()
-	}()
-
-	for {
-		select {
-		case message, ok := <-s.send:
-			if !ok {
-				// TODO: write close message
-				return
-			}
-			if err := s.socket.write(message); err != nil {
-				return
-			}
-		case <-ticker.C:
-			if err := s.socket.ping(); err != nil {
-				return
-			}
-		}
 	}
 }
 
@@ -98,12 +57,15 @@ func (s *Client) Unsubscribe(channel string) {
 func (c *Client) HandleMessage(raw []byte) {
 	request := new(ActionRequest)
 	if err := json.Unmarshal(raw, request); err != nil {
+		log.Println("client.HandleMessage:", err)
 		return
 	}
+	log.Println("client.HandleMessage:", request)
 	switch request.Event {
 	case Join, Leave:
 		action, err := new(JoinAction).Decode(request)
 		if err != nil {
+			log.Println("client.HandleMessage:", err)
 			return
 		}
 		if request.Event == Join {
@@ -114,24 +76,28 @@ func (c *Client) HandleMessage(raw []byte) {
 	case Hello:
 		action, err := new(HelloAction).Decode(request)
 		if err != nil {
+			log.Println("client.HandleMessage:", err)
 			return
 		}
 		go c.Hello(action)
 	case Send:
 		action, err := new(MessageAction).Decode(request)
 		if err != nil {
+			log.Println("client.HandleMessage:", err)
 			return
 		}
 		go c.Send(action)
 	case Typing:
 		action, err := new(TypingAction).Decode(request)
 		if err != nil {
+			log.Println("client.HandleMessage:", err)
 			return
 		}
 		go c.Typing(action)
 	case Load:
 		action, err := new(LoadRequest).Decode(request)
 		if err != nil {
+			log.Println("client.HandleMessage:", err)
 			return
 		}
 		go c.Load(action)
@@ -143,12 +109,14 @@ func (c *Client) HandleMessage(raw []byte) {
 func (c *Client) JSON(message *ResponseMessage) {
 	serialized, err := json.Marshal(message)
 	if err != nil {
-		// TODO: log the error
+		log.Println("client.JSON:", err)
+		return
 	}
 	select {
 	case c.send <- serialized:
 	case <-time.After(time.Microsecond * 50):
-		// TODO: log that we were unable to send this
+		log.Println("client.JSON:", "Failed to send response")
+		return
 	}
 }
 
@@ -161,7 +129,12 @@ func (c *Client) Leave(action *JoinAction) {
 }
 
 func (c *Client) Send(action *MessageAction) {
-	// TODO: handle this
+	if sub, ok := c.subscriptions[action.Channel]; ok {
+		response := &ResponseMessage{Send, action.Content}
+		sub.broadcast <- response
+		return
+	}
+	// TODO: handle the case when the user is not subscribed to a chat
 }
 
 func (c *Client) Typing(action *TypingAction) {

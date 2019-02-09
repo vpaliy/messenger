@@ -3,9 +3,9 @@ package store
 import "github.com/vpaliy/telex/model"
 
 type RoomStore interface {
-	Get(query Query) (*model.Room, error)
-	GetAll(query Query) ([]*model.Room, error)
-	Create(room *model.Room) error
-	Update(room *model.Room) error
-	Delete(room *model.Room) error
+	Get(query Query) (*model.Channel, error)
+	GetAll(query Query) ([]*model.Channel, error)
+	Create(room *model.Channel) error
+	Update(room *model.Channel) error
+	Delete(room *model.Channel) error
 }

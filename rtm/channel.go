@@ -1,5 +1,7 @@
 package rtm
 
+import "log"
+
 type Channel struct {
 	name        string
 	subscribers map[*Client]bool
@@ -39,6 +41,7 @@ func (c *Channel) Run() {
 		case message := <-c.broadcast:
 			// TODO: handle this better
 			// TODO: put this change in the database
+			log.Println("channel.Run: broadcasting")
 			for sub, connected := range c.subscribers {
 				if connected {
 					go sub.JSON(message)
