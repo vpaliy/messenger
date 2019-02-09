@@ -1,4 +1,4 @@
-package chat
+package rtm
 
 import (
 	"github.com/gorilla/websocket"
