@@ -21,7 +21,7 @@ type WebSocketConfig struct {
 	CheckOrigin        func(r *http.Request) bool
 }
 
-const (
+var (
 	DefaultWebSocketConfig = WebSocketConfig{
 		MaxMessageSize: 512,
 		WriteWait:      10 * time.Second,
@@ -55,7 +55,7 @@ func (ws *WSocket) read() ([]byte, error) {
 }
 
 func (ws *WSocket) write(messageType int, message interface{}) error {
-	ws.conn.SetWriteDeadline(time.Now().Add(sc.config.WriteWait))
+	ws.conn.SetWriteDeadline(time.Now().Add(ws.config.WriteWait))
 	w, err := ws.conn.NextWriter(messageType)
 	if err != nil {
 		return err
@@ -78,7 +78,7 @@ func (ws *WSocket) close() error {
 		ws.ticker.Stop()
 	}
 	ws.closed = true
-	return ws.conn.close()
+	return ws.conn.Close()
 }
 
 func (ws *WSocket) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
