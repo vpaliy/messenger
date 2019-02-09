@@ -32,6 +32,48 @@ func NewClient(socket *WSocket, manager ChannelManager, handler EventHandler) *C
 	}
 }
 
+func (s *Client) readPump() {
+	defer func() {
+		// TODO: unregister from hub
+		s.socket.close()
+	}()
+	// listen
+	for {
+		message, err := s.socket.read()
+		if err != nil {
+			break
+		}
+		s.HandleMessage(message)
+	}
+}
+
+func (s *Client) writePump() {
+	config := s.socket.config
+	ticker := time.NewTicker(config.pingPeriod)
+	// close it when finished
+	defer func() {
+		ticker.Stop()
+		s.socket.close()
+	}()
+
+	for {
+		select {
+		case message, ok := <-s.send:
+			if !ok {
+				// TODO: write close message
+				return
+			}
+			if err := s.socket.write(message); err != nil {
+				return
+			}
+		case <-ticker.C:
+			if err := s.socket.ping(); err != nil {
+				return
+			}
+		}
+	}
+}
+
 func (s *Client) Subscribe(sub *Subscription) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
