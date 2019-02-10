@@ -1,5 +1,9 @@
 package model
 
+import (
+	"github.com/jinzhu/gorm"
+)
+
 const (
 	Dialog  = "dialog"
 	Group   = "group"
@@ -7,19 +11,25 @@ const (
 )
 
 type Channel struct {
-	Title       string
-	Tags        []string
-	Creator     string
-	Image       *string
-	Description string
-	Type        string
-	Archived    bool
+	gorm.Model
+	Name          string `gorm:"unique_index;not null"`
+	Tags          []string
+	Creator       User `gorm:"foreignkey:CreatorID"`
+	CreatorID     uint
+	Image         *string
+	Description   string `gorm:"size:2048"`
+	Type          string
+	Archived      bool
+	Subscriptions []Subscription
 }
 
-type Subcription struct {
+type Subscription struct {
+	gorm.Model
 	Alert     bool
 	Unread    int16
-	ChannelID string
-	User      *User
+	Channel   Channel
+	ChannelID uint
+	User      User
+	UserID    uint
 	Type      string
 }

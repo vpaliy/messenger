@@ -2,27 +2,27 @@ package model
 
 import (
 	"github.com/jinzhu/gorm"
-	"time"
 )
 
-type (
-	Message struct {
-		gorm.Model
-		ChannelID   string
-		User        *User
-		Text        string
-		Mentions    []*User
-		Attachments []Attachment
-		EditedAt    *time.Time
-	}
+type Message struct {
+	gorm.Model
+	Channel     Channel
+	ChannelID   uint
+	User        User
+	UserID      uint
+	Text        string
+	Mentions    []User
+	Attachments []Attachment
+}
 
-	Attachment struct {
-		Title    string
-		Text     string
-		ImageURL string
-		AudioURL string
-		VideoURL string
-		ThumbURL string
-		Color    string
-	}
-)
+type Attachment struct {
+	gorm.Model
+	MessageID uint
+	Title     string
+	Text      string
+	ImageURL  string
+	AudioURL  string
+	VideoURL  string
+	ThumbURL  string
+	Color     string
+}

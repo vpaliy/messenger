@@ -4,7 +4,7 @@ import asyncio
 import websockets
 import argparse
 import json
-
+import time
 
 async def send(websocket, message, channel):
   await websocket.send(json.dumps({
@@ -20,15 +20,35 @@ async def join(websocket, group):
   }))
 
 
+async def receiver(websocket):
+  while True:
+    message = await websocket.recv()
+    print(f'Received:\n{message}')
+
+
+async def spinner(websocket):
+  await join(websocket, 'Telex')
+  while True:
+    time.sleep(5)
+    message = input('Enter your message\n')
+    await send(websocket, message, 'Telex')
+    message = await websocket.recv()
+    print(f'Received:\n{message}')
+
+
 async def run(uri):
   async with websockets.connect(uri) as websocket:
     print(f'Connection has been established: {uri}')
-    await join(websocket, 'Telex')
-    while True:
-      message = input('Enter your message\n')
-      await send(websocket, message, 'Telex')
-      raw = await websocket.recv()
-      print(f'Received response:\n{raw}')
+    spinner_task = asyncio.ensure_future(
+            spinner(websocket))
+    receiver_task = asyncio.ensure_future(
+        receiver(websocket))
+    done, pending = await asyncio.wait(
+        [receiver_task, spinner_task],
+        return_when=asyncio.ALL_COMPLETED,
+    )
+    for task in pending:
+        task.cancel()
 
 
 def main():

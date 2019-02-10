@@ -8,13 +8,14 @@ import (
 
 type User struct {
 	gorm.Model
-	Username     string  `gorm:"column:username;unique_index"`
-	FullName     string  `gorm:"column:fullname"`
-	Email        string  `gorm:"column:email;type:varchar(100);unique_index"`
-	Bio          string  `gorm:"column:bio;size:1024"`
-	Image        *string `gorm:"column:image_url"`
-	ImageThumb   *string `gorm:"column:thumb_url"`
-	PasswordHash string  `gorm:"column:password;not null"`
+	Username      string `gorm:"unique_index"`
+	FullName      string
+	Email         string  `gorm:"type:varchar(100);unique_index"`
+	Bio           string  `gorm:"size:1024"`
+	Image         *string `gorm:"column:image_url"`
+	ImageThumb    *string
+	PasswordHash  string `gorm:"not null"`
+	Subscriptions []Subscription
 }
 
 func (u *User) SetPassword(password string) error {

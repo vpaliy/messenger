@@ -2,9 +2,20 @@ package channels
 
 import (
 	"github.com/labstack/echo"
+	"github.com/vpaliy/telex/store"
 )
 
 type Handler struct {
+	channelStore      ChannelStore
+	subscriptionStore SubscriptionStore
+}
+
+// TODO: use dependency injection for this
+func NewHandler(db *gorm.DB) *Handler {
+	return &Handler{
+		channelStore:      &ChannelStore{db},
+		subscriptionStore: &SubscriptionStore{db},
+	}
 }
 
 func (h *Handler) Register(group *echo.Group) {
