@@ -16,7 +16,7 @@ type Channel struct {
 	Tags        []string
 	Creator     User `gorm:"foreignkey:CreatorID"`
 	CreatorID   uint
-	Image       *string
+	Image       string
 	Description string `gorm:"size:2048"`
 	Type        string
 	Archived    bool
@@ -26,7 +26,6 @@ type Channel struct {
 
 type Subscription struct {
 	gorm.Model
-	Alert     bool
 	Snippet   string
 	Unread    int16
 	Channel   Channel
@@ -34,4 +33,5 @@ type Subscription struct {
 	User      User
 	UserID    uint
 	Type      string
+	Private   bool
 }

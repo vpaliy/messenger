@@ -8,13 +8,14 @@ import (
 
 type User struct {
 	gorm.Model
-	Username      string `gorm:"unique_index"`
-	FullName      string
-	Email         string  `gorm:"type:varchar(100);unique_index"`
-	Bio           string  `gorm:"size:1024"`
-	Image         *string `gorm:"column:image_url"`
-	ImageThumb    *string
-	PasswordHash  string `gorm:"not null"`
+	Username     string `gorm:"unique_index"`
+	FullName     string
+	Email        string `gorm:"type:varchar(100);unique_index"`
+	Bio          string `gorm:"size:1024"`
+	Image        string
+	ImageThumb   string
+	PasswordHash string `gorm:"not null"`
+	// TODO: not sure if I need this here
 	Subscriptions []Subscription
 }
 
