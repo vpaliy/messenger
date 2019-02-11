@@ -19,14 +19,12 @@ func NewHandler(db *gorm.DB) *Handler {
 }
 
 func (h *Handler) Register(group *echo.Group) {
-	group.GET("/channels.info", h.FetchChannel)
-	group.POST("/channels.create", h.CreateChannel)
-	group.PUT("/channels.update", h.UpdateChannel)
-	group.POST("/channels.archive", h.ArchiveChannel)
-	group.DELETE("/channels.kick", h.KickUser)
-	group.POST("/channels.invite", h.InviteUser)
+	group.GET("/channels/:id", h.FetchChannel)
+	group.POST("/channels", h.CreateChannel)
+	group.PUT("/channels/:id", h.UpdateChannel)
+	group.DELETE("/channels/:id", h.ArchiveChannel)
 
-	// set routes for channel subscriptions
-	group.GET("/channels/:name/subscription", h.GetSubscription)
-	group.POST("/channels/:name/subscription", h.JoinChannel)
+	group.GET("/channels/:id/subscriptions/:id", h.GetSubscription)
+	group.DELETE("channels/:id/subscriptions/:id", h.KickUser)
+	group.POST("/channels/:id/subscriptions", h.JoinChannel)
 }

@@ -8,8 +8,8 @@ type Handler struct {
 }
 
 func (h *Handler) Register(group *echo.Group) {
-	group.GET("/messages", h.GetMessages)
-	group.POST("/messages", h.PostMessage)
-	group.PUT("/messages", h.EditMessage)
-	group.DELETE("/messages", h.DeleteMessage)
+	group.GET("/chat", h.GetMessages)
+	group.POST("/chat", h.PostMessage)
+	group.PUT("/chat", h.EditMessage)
+	group.DELETE("/chat", h.DeleteMessage)
 }
