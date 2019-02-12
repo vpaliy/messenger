@@ -13,8 +13,8 @@ const (
 type Channel struct {
 	gorm.Model
 	Name        string `gorm:"unique_index;not null"`
+	Creator     User   `gorm:"foreignkey:CreatorID"`
 	Tags        []string
-	Creator     User `gorm:"foreignkey:CreatorID"`
 	CreatorID   uint
 	Image       string
 	Description string `gorm:"size:2048"`
@@ -34,4 +34,12 @@ type Subscription struct {
 	UserID    uint
 	Type      string
 	Private   bool
+}
+
+func (c *Channel) GetUsers() []*User {
+	users := make([]*User, len(c.Members))
+	for i, member := range c.Members {
+		users[i] = &member.User
+	}
+	return users
 }

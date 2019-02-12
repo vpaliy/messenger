@@ -5,11 +5,11 @@ import (
 )
 
 type userResponse struct {
-	Email    string  `json:"email"`
-	Username string  `json:"username"`
-	FullName string  `json:"fullName"`
-	Bio      string  `json:"bio"`
-	Image    *string `json:"image"`
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	FullName string `json:"fullName"`
+	Bio      string `json:"bio"`
+	Image    string `json:"image"`
 }
 
 func newUserResponse(user *model.User) *userResponse {
