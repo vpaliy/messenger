@@ -1,4 +1,4 @@
-package Subscription
+package channels
 
 import (
 	"github.com/jinzhu/gorm"
@@ -12,18 +12,6 @@ type ChannelStore struct {
 
 type SubscriptionStore struct {
 	db *gorm.DB
-}
-
-func NewChannelStore(db *gorm.DB) *ChannelStore {
-	return &ChannelStore{
-		db: db,
-	}
-}
-
-func NewSubscriptionStore(db *gorm.DB) *SubscriptionStore {
-	return &SubscriptionStore{
-		db: db,
-	}
 }
 
 func (ms *ChannelStore) Get(query store.Query) (*model.Channel, error) {
@@ -71,13 +59,13 @@ func (ms *SubscriptionStore) GetAll(query store.Query) ([]*model.Subscription, e
 }
 
 func (ms *SubscriptionStore) Create(c *model.Channel, s *model.Subscription) error {
-	return db.Model(&c).Association("Subscriptions").Append(s).Error
+	return ms.db.Model(&c).Association("Subscriptions").Append(s).Error
 }
 
 func (ms *SubscriptionStore) Update(c *model.Channel, s *model.Subscription) error {
-	return db.Model(&c).Association("Subscriptions").Update(s).Error
+	return nil
 }
 
 func (ms *SubscriptionStore) Delete(c *model.Channel, s *model.Subscription) error {
-	return db.Model(&c).Association("Subscriptions").Delete(s).Error
+	return ms.db.Model(&c).Association("Subscriptions").Delete(s).Error
 }

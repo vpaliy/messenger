@@ -1,5 +1,10 @@
 package channels
 
+import (
+	"github.com/labstack/echo"
+	"github.com/vpaliy/telex/model"
+)
+
 type createChannelRequest struct {
 	Channel     string   `json:"channel" validate:"required"`
 	Tags        []string `json:"tags"`
@@ -39,7 +44,7 @@ func (r *createChannelRequest) bind(c echo.Context) error {
 func (c *createChannelRequest) toChannel() *model.Channel {
 	return &model.Channel{
 		Name:        c.Channel,
-		Tags:        c.Tags,
+		Tags:        model.CreateTags(c.Tags),
 		Image:       c.Image,
 		Description: c.Description,
 		Type:        c.Type,
@@ -49,7 +54,7 @@ func (c *createChannelRequest) toChannel() *model.Channel {
 
 func (c *updateChannelRequest) toChannel() *model.Channel {
 	return &model.Channel{
-		Tags:        c.Tags,
+		Tags:        model.CreateTags(c.Tags),
 		Image:       c.Image,
 		Description: c.Description,
 		Private:     c.Private,

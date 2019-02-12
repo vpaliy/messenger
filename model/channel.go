@@ -14,7 +14,6 @@ type Channel struct {
 	gorm.Model
 	Name        string `gorm:"unique_index;not null"`
 	Creator     User   `gorm:"foreignkey:CreatorID"`
-	Tags        []string
 	CreatorID   uint
 	Image       string
 	Description string `gorm:"size:2048"`
@@ -22,6 +21,7 @@ type Channel struct {
 	Archived    bool
 	Members     []Subscription
 	Private     bool
+	Tags        []Tag `gorm:"many2many:channel_tags;association_autocreate:false"`
 }
 
 type Subscription struct {
@@ -36,10 +36,32 @@ type Subscription struct {
 	Private   bool
 }
 
+type Tag struct {
+	gorm.Model
+	Tag      string    `gorm:"unique_index"`
+	Channels []Channel `gorm:"many2many:channel_tags;"`
+}
+
+func CreateTags(tags []string) []Tag {
+	result := make([]Tag, len(tags))
+	for i, t := range tags {
+		result[i].Tag = t
+	}
+	return result
+}
+
 func (c *Channel) GetUsers() []*User {
 	users := make([]*User, len(c.Members))
 	for i, member := range c.Members {
 		users[i] = &member.User
 	}
 	return users
+}
+
+func (c *Channel) GetTags() []string {
+	tags := make([]string, len(c.Tags))
+	for i, tag := range c.Tags {
+		tags[i] = tag.Tag
+	}
+	return tags
 }

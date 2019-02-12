@@ -2,6 +2,9 @@ package channels
 
 import (
 	"github.com/labstack/echo"
+	"github.com/vpaliy/telex/store"
+	"github.com/vpaliy/telex/utils"
+	"net/http"
 )
 
 func (h *Handler) FetchChannel(c echo.Context) error {

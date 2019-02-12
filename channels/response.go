@@ -1,10 +1,13 @@
 package channels
 
-import "time"
+import (
+	"github.com/vpaliy/telex/model"
+	"time"
+)
 
 // represents a subscriber to a channel (or the creator of a channel)
 type participant struct {
-	ID       string  `json:"id"`
+	ID       uint    `json:"id"`
 	Username string  `json:"username"`
 	Email    string  `json:"email"`
 	Fullname string  `json:"fullname"`
@@ -47,8 +50,8 @@ func newParticipant(u *model.User) participant {
 		ID:       u.ID,
 		Username: u.Username,
 		Email:    u.Email,
-		Fullname: u.Fullname,
-		Image:    u.Image,
+		Fullname: u.FullName,
+		//Image:    u.Image,
 	}
 }
 
@@ -64,7 +67,7 @@ func newSubscriptionResponse(s *model.Subscription) *subscriptionResponse {
 	}
 }
 
-func newUserSubscriptionsResponse(u *model.User, subs *model.Subscription) *userSubscriptionsResponse {
+func newUserSubscriptionsResponse(u *model.User, subs []*model.Subscription) *userSubscriptionsResponse {
 	subscriptions := make([]*subscriptionResponse, len(subs))
 	for i, s := range subs {
 		subscriptions[i] = newSubscriptionResponse(s)
@@ -88,10 +91,10 @@ func newChannelResponse(c *model.Channel) *channelResponse {
 		UpdatedAt:   c.UpdatedAt,
 		Private:     c.Private,
 		Description: c.Description,
-		Tags:        c.Tags,
-		Image:       c.Image,
-		Archived:    c.Archived,
-		Members:     member,
-		Creator:     newParticipant(c.User),
+		Tags:        c.GetTags(),
+		//	Image:       c.Image,
+		Archived: c.Archived,
+		Members:  members,
+		Creator:  newParticipant(&c.Creator),
 	}
 }

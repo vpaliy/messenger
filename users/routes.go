@@ -25,7 +25,8 @@ func (h *Handler) Login(c echo.Context) error {
 	if !user.CheckPasswordHash(request.Password) {
 		return c.JSON(http.StatusNotFound, utils.NotFound())
 	}
-	return c.JSON(http.StatusOK, newUserResponse(user))
+	token := utils.CreateJWT(user.ID)
+	return c.JSON(http.StatusOK, newUserResponse(user, token))
 }
 
 func (h *Handler) SignUp(c echo.Context) error {
@@ -37,7 +38,8 @@ func (h *Handler) SignUp(c echo.Context) error {
 	if err := h.userStore.Create(user); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	return c.JSON(http.StatusCreated, newUserResponse(user))
+	token := utils.CreateJWT(user.ID)
+	return c.JSON(http.StatusOK, newUserResponse(user, token))
 }
 
 func (h *Handler) ForgotPassword(c echo.Context) error {

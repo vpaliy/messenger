@@ -1,5 +1,10 @@
 package messages
 
+import (
+	"github.com/vpaliy/telex/model"
+	"time"
+)
+
 type message struct {
 	Text        string       `json:"text"`
 	Username    string       `json:"username"`
@@ -34,7 +39,7 @@ func newMessageResponse(m *model.Message) *message {
 
 func newCreateMessageResponse(m *model.Message) *createMessageResponse {
 	response := new(createMessageResponse)
-	response.Message = newMessageResponse(m)
+	response.Message = *newMessageResponse(m)
 	response.Channel = string(m.ChannelID)
 	return response
 }

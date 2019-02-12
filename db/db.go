@@ -45,5 +45,11 @@ func DropTestDB() error {
 }
 
 func AutoMigrate(db *gorm.DB) {
-	db.AutoMigrate(&model.User{})
+	db.AutoMigrate(&model.User{},
+		&model.Subscription{},
+		&model.Attachment{},
+		&model.Channel{},
+		&model.Message{},
+		&model.Tag{},
+	)
 }
