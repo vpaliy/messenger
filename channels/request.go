@@ -3,6 +3,7 @@ package channels
 import (
 	"github.com/labstack/echo"
 	"github.com/vpaliy/telex/model"
+	"github.com/vpaliy/telex/utils"
 )
 
 type createChannelRequest struct {
@@ -16,29 +17,48 @@ type createChannelRequest struct {
 
 type updateChannelRequest struct {
 	Tags        []string `json:"tags"`
-	Image       string   `json:"image"`
-	Description string   `json:"description"`
-	Private     bool     `json:"private"`
+	Image       *string  `json:"image"`
+	Channel     *string  `json:"channel"`
+	Description *string  `json:"description"`
+	Private     *bool    `json:"private"`
 }
 
-func (r *updateChannelRequest) bind(c echo.Context) error {
+func (r *updateChannelRequest) bind(c echo.Context, channel *model.Channel) error {
 	if err := c.Bind(r); err != nil {
 		return err
 	}
 	if err := c.Validate(r); err != nil {
 		return err
 	}
+	if len(r.Tags) > 0 {
+		channel.Tags = model.CreateTags(r.Tags)
+	}
+	if r.Channel != nil {
+		channel.Name = *r.Channel
+	}
+	if r.Image != nil {
+		channel.Image = *r.Image
+	}
+	if r.Description != nil {
+		channel.Description = *r.Description
+	}
+	if r.Private != nil {
+		channel.Private = *r.Private
+	}
 	return nil
 }
 
-func (r *createChannelRequest) bind(c echo.Context) error {
+func (r *createChannelRequest) bind(c echo.Context) (*model.Channel, error) {
 	if err := c.Bind(r); err != nil {
-		return err
+		return nil, err
 	}
 	if err := c.Validate(r); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	claims := utils.GetJWTClaims(c)
+	channel := r.toChannel()
+	channel.CreatorID = claims.ID
+	return channel, nil
 }
 
 func (c *createChannelRequest) toChannel() *model.Channel {
@@ -48,15 +68,6 @@ func (c *createChannelRequest) toChannel() *model.Channel {
 		Image:       c.Image,
 		Description: c.Description,
 		Type:        c.Type,
-		Private:     c.Private,
-	}
-}
-
-func (c *updateChannelRequest) toChannel() *model.Channel {
-	return &model.Channel{
-		Tags:        model.CreateTags(c.Tags),
-		Image:       c.Image,
-		Description: c.Description,
 		Private:     c.Private,
 	}
 }

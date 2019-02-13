@@ -28,7 +28,8 @@ func (h *Handler) Register(group *echo.Group) {
 	channels.PUT("/:id", h.UpdateChannel)
 	channels.DELETE("/:id", h.ArchiveChannel)
 
-	channels.GET("/:id/subscriptions/:id", h.GetSubscription)
-	channels.DELETE("/:id/subscriptions/:id", h.KickUser)
+	channels.GET("/subscriptions", h.GetAllSubscriptions)
+	channels.GET("/:channel/subscriptions/:id", h.GetSubscription)
+	channels.DELETE("/:channel/subscriptions/:id", h.KickUser)
 	channels.POST("/:id/subscriptions", h.JoinChannel)
 }

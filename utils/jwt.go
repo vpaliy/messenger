@@ -8,7 +8,8 @@ import (
 )
 
 type JWTClaims struct {
-	ID uint `json:"ID"`
+	ID       uint   `json:"ID"`
+	Username string `json:"username"`
 	jwt.StandardClaims
 }
 
@@ -20,9 +21,15 @@ func JWTMiddleware() echo.MiddlewareFunc {
 	return middleware.JWTWithConfig(config)
 }
 
-func CreateJWT(id uint) string {
+func GetJWTClaims(c echo.Context) *JWTClaims {
+	token := c.Get("user").(*jwt.Token)
+	return token.Claims.(*JWTClaims)
+}
+
+func CreateJWT(id uint, username string) string {
 	claims := &JWTClaims{
 		id,
+		username,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
 		},

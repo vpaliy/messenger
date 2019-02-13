@@ -32,7 +32,7 @@ func NewValidatorError(err error) Error {
 	return e
 }
 
-func AccessForbidden() Error {
+func Forbidden() Error {
 	e := Error{}
 	e.Errors = make(map[string]interface{})
 	e.Errors["body"] = "Access forbidden"

@@ -65,3 +65,11 @@ func (c *Channel) GetTags() []string {
 	}
 	return tags
 }
+
+func (c *Channel) CreateSubscription(id uint) *Subscription {
+	return &Subscription{
+		ChannelID: c.ID,
+		Private:   c.Private,
+		UserID:    id,
+	}
+}
