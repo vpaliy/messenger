@@ -21,18 +21,14 @@ type createMessageRequest struct {
 	Attachments []attachment `json:"attachments"`
 }
 
-func newCreateMessageRequest() *createMessageRequest {
-	return new(createMessageRequest)
-}
-
-func (r *createMessageRequest) bind(c echo.Context) error {
+func (r *createMessageRequest) bind(c echo.Context) (*model.Message, error) {
 	if err := c.Bind(r); err != nil {
-		return err
+		return nil, err
 	}
 	if err := c.Validate(r); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return r.toMessage(), nil
 }
 
 func (r *createMessageRequest) toMessage() *model.Message {

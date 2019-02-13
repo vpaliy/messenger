@@ -6,17 +6,17 @@ import (
 	"github.com/vpaliy/telex/store"
 )
 
-type MessagesStore struct {
+type MessageStore struct {
 	db *gorm.DB
 }
 
-func NewStore(db *gorm.DB) *MessagesStore {
-	return &MessagesStore{
+func NewStore(db *gorm.DB) *MessageStore {
+	return &MessageStore{
 		db: db,
 	}
 }
 
-func (ms *MessagesStore) Get(query store.Query) (*model.Message, error) {
+func (ms *MessageStore) Get(query store.Query) (*model.Message, error) {
 	var m model.Message
 	if err := ms.db.Where(query.ToMap()).First(&m).Error; err != nil {
 		if gorm.IsRecordNotFoundError(err) {
@@ -27,18 +27,39 @@ func (ms *MessagesStore) Get(query store.Query) (*model.Message, error) {
 	return &m, nil
 }
 
-func (ms *MessagesStore) GetAll(query store.Query) ([]*model.Message, error) {
+func (ms *MessageStore) GetAll(query store.Query) ([]*model.Message, error) {
 	return nil, nil
 }
 
-func (ms *MessagesStore) Create(u *model.Message) error {
-	return ms.db.Create(u).Error
+func (ms *MessageStore) Create(m *model.Message) error {
+	tx := ms.db.Begin()
+	if err := tx.Create(m).Error; err != nil {
+		return err
+	}
+	attachments := m.Attachments
+	for _, a := range attachments {
+		if err := tx.Model(m).Association("Attachments").Append(a).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	err := tx.Where(m.ID).
+		Preload("User").
+		Preload("Attachments").
+		Preload("Channel").
+		Find(m).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	m.Attachments = attachments
+	return tx.Commit().Error
 }
 
-func (ms *MessagesStore) Update(u *model.Message) error {
+func (ms *MessageStore) Update(u *model.Message) error {
 	return ms.db.Model(u).Update(u).Error
 }
 
-func (ms *MessagesStore) Delete(u *model.Message) error {
+func (ms *MessageStore) Delete(u *model.Message) error {
 	return ms.db.Model(u).Delete(u).Error
 }

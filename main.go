@@ -5,7 +5,7 @@ import (
 	"github.com/vpaliy/telex/channels"
 	"github.com/vpaliy/telex/db"
 	"github.com/vpaliy/telex/handler"
-	_ "github.com/vpaliy/telex/messages"
+	"github.com/vpaliy/telex/messages"
 	"github.com/vpaliy/telex/router"
 	"github.com/vpaliy/telex/rtm"
 	"github.com/vpaliy/telex/users"
@@ -43,7 +43,9 @@ func main() {
 
 	registerHTTPHandlers(api,
 		users.NewHandler(database),
-		channels.NewHandler(database))
+		channels.NewHandler(database),
+		messages.NewHandler(database),
+	)
 	registerRTM(e)
 	go manager.Run()
 	e.Logger.Fatal(e.Start("127.0.0.1:8080"))
