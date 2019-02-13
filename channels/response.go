@@ -2,7 +2,7 @@ package channels
 
 import (
 	"github.com/vpaliy/telex/model"
-	"time"
+	"github.com/vpaliy/telex/utils"
 )
 
 // represents a subscriber to a channel (or the creator of a channel)
@@ -16,28 +16,28 @@ type participant struct {
 
 // represents a user subscription to a channel
 type subscriptionResponse struct {
-	ID        uint      `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Private   bool      `json:"private"`
-	Snippet   string    `json:"snippet"`
-	Channel   uint      `json:"channel"`
-	Unread    int16     `json:"unread"`
+	ID        uint            `json:"id"`
+	CreatedAt utils.Timestamp `json:"created_at"`
+	UpdatedAt utils.Timestamp `json:"updated_at"`
+	Private   bool            `json:"private"`
+	Snippet   string          `json:"snippet"`
+	Channel   uint            `json:"channel"`
+	Unread    int16           `json:"unread"`
 }
 
 // represents a channel info
 type channelResponse struct {
-	ID          uint          `json:"id"`
-	Name        string        `json:"name"`
-	CreatedAt   time.Time     `json:"created_at"`
-	UpdatedAt   time.Time     `json:"updated_at"`
-	Private     bool          `json:"private"`
-	Description string        `json:"description"`
-	Tags        []string      `json:"tags"`
-	Image       *string       `json:"image"`
-	Archived    bool          `json:"archived"`
-	Creator     participant   `json:"creator"`
-	Members     []participant `json:"members"`
+	ID          uint            `json:"id"`
+	Name        string          `json:"name"`
+	CreatedAt   utils.Timestamp `json:"created_at"`
+	UpdatedAt   utils.Timestamp `json:"updated_at"`
+	Private     bool            `json:"private"`
+	Description string          `json:"description"`
+	Tags        []string        `json:"tags"`
+	Image       *string         `json:"image"`
+	Archived    bool            `json:"archived"`
+	Creator     participant     `json:"creator"`
+	Members     []participant   `json:"members"`
 }
 
 type userSubscriptionsResponse struct {
@@ -58,8 +58,8 @@ func newParticipant(u *model.User) participant {
 func newSubscriptionResponse(s *model.Subscription) *subscriptionResponse {
 	return &subscriptionResponse{
 		ID:        s.ID,
-		CreatedAt: s.CreatedAt,
-		UpdatedAt: s.UpdatedAt,
+		CreatedAt: utils.Timestamp(s.CreatedAt),
+		UpdatedAt: utils.Timestamp(s.UpdatedAt),
 		Private:   s.Private,
 		Snippet:   s.Snippet,
 		Channel:   s.ChannelID,
@@ -87,8 +87,8 @@ func newChannelResponse(c *model.Channel) *channelResponse {
 	return &channelResponse{
 		ID:          c.ID,
 		Name:        c.Name,
-		CreatedAt:   c.CreatedAt,
-		UpdatedAt:   c.UpdatedAt,
+		CreatedAt:   utils.Timestamp(c.CreatedAt),
+		UpdatedAt:   utils.Timestamp(c.UpdatedAt),
 		Private:     c.Private,
 		Description: c.Description,
 		Tags:        c.GetTags(),

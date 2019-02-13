@@ -14,6 +14,14 @@ type SubscriptionStore struct {
 	db *gorm.DB
 }
 
+func NewChannelStore(db *gorm.DB) *ChannelStore {
+	return &ChannelStore{db}
+}
+
+func NewSubscriptionStore(db *gorm.DB) *SubscriptionStore {
+	return &SubscriptionStore{db}
+}
+
 func (cs *ChannelStore) Get(query store.Query) (*model.Channel, error) {
 	var m model.Channel
 	err := cs.db.Where(query.ToMap()).

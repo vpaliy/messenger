@@ -2,14 +2,15 @@ package messages
 
 import (
 	"github.com/vpaliy/telex/model"
-	"time"
+	"github.com/vpaliy/telex/utils"
+	_ "log"
 )
 
 type message struct {
-	Text        string       `json:"text"`
-	Username    string       `json:"username"`
-	CreatedAt   time.Time    `json:"timestamp"`
-	Attachments []attachment `json:"attachments"`
+	Text        string          `json:"text"`
+	Username    string          `json:"username"`
+	CreatedAt   utils.Timestamp `json:"timestamp"`
+	Attachments []attachment    `json:"attachments"`
 }
 
 type createMessageResponse struct {
@@ -17,11 +18,26 @@ type createMessageResponse struct {
 	Message message `json:"message"`
 }
 
+type fetchMessagesResponse struct {
+	Channel  string    `json:"channel"`
+	Messages []message `json:"messages"`
+}
+
+func newFetchMessagesResponse(channel string, messages []*model.Message) *fetchMessagesResponse {
+	response := new(fetchMessagesResponse)
+	response.Channel = channel
+	response.Messages = make([]message, len(messages))
+	for i, m := range messages {
+		response.Messages[i] = *newMessageResponse(m)
+	}
+	return response
+}
+
 func newMessageResponse(m *model.Message) *message {
 	response := new(message)
 	response.Text = m.Text
 	response.Username = m.User.Username
-	response.CreatedAt = m.CreatedAt
+	response.CreatedAt = utils.Timestamp(m.CreatedAt)
 	response.Attachments = make([]attachment, len(m.Attachments))
 	for i, a := range m.Attachments {
 		response.Attachments[i] = attachment{

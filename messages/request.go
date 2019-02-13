@@ -3,6 +3,8 @@ package messages
 import (
 	"github.com/labstack/echo"
 	"github.com/vpaliy/telex/model"
+	"github.com/vpaliy/telex/utils"
+	"strconv"
 )
 
 type attachment struct {
@@ -21,18 +23,39 @@ type createMessageRequest struct {
 	Attachments []attachment `json:"attachments"`
 }
 
-func (r *createMessageRequest) bind(c echo.Context) (*model.Message, error) {
-	if err := c.Bind(r); err != nil {
-		return nil, err
-	}
-	if err := c.Validate(r); err != nil {
-		return nil, err
-	}
-	return r.toMessage(), nil
+type fetchMessagesRequest struct {
+	Channel string          `json:"channel" validate:"required"`
+	Latest  utils.Timestamp `json:"latest"`
+	Oldest  utils.Timestamp `json:"oldest"`
+	Limit   int             `json:"limit"`
 }
 
-func (r *createMessageRequest) toMessage() *model.Message {
+func (r *fetchMessagesRequest) bind(c echo.Context) error {
+	if err := c.Bind(r); err != nil {
+		return err
+	}
+	if err := c.Validate(r); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *createMessageRequest) bind(c echo.Context) error {
+	if err := c.Bind(r); err != nil {
+		return err
+	}
+	if err := c.Validate(r); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *createMessageRequest) toMessage(c echo.Context) *model.Message {
+	id, _ := strconv.Atoi(r.Channel)
+	claims := utils.GetJWTClaims(c)
 	message := new(model.Message)
+	message.ChannelID = uint(id)
+	message.UserID = claims.ID
 	message.Text = r.Text
 	message.Attachments = make([]model.Attachment, len(r.Attachments))
 	for i, a := range r.Attachments {

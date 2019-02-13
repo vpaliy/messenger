@@ -16,11 +16,30 @@ type createChannelRequest struct {
 }
 
 type updateChannelRequest struct {
+	Channel     string   `json:"channel" validate:"required"`
 	Tags        []string `json:"tags"`
 	Image       *string  `json:"image"`
-	Channel     *string  `json:"channel"`
 	Description *string  `json:"description"`
 	Private     *bool    `json:"private"`
+}
+
+type channelAction struct {
+	Channel string `json:"channel" validate:"required"`
+}
+
+type markChannelRequest struct {
+	Channel   string          `json:"channel" validate:"required"`
+	Timestamp utils.Timestamp `json:"ts" validate:"required"`
+}
+
+func (r *channelAction) bind(c echo.Context) error {
+	if err := c.Bind(r); err != nil {
+		return err
+	}
+	if err := c.Validate(r); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *updateChannelRequest) bind(c echo.Context, channel *model.Channel) error {
@@ -32,9 +51,6 @@ func (r *updateChannelRequest) bind(c echo.Context, channel *model.Channel) erro
 	}
 	if len(r.Tags) > 0 {
 		channel.Tags = model.CreateTags(r.Tags)
-	}
-	if r.Channel != nil {
-		channel.Name = *r.Channel
 	}
 	if r.Image != nil {
 		channel.Image = *r.Image

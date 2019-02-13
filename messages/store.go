@@ -28,7 +28,15 @@ func (ms *MessageStore) Get(query store.Query) (*model.Message, error) {
 }
 
 func (ms *MessageStore) GetAll(query store.Query) ([]*model.Message, error) {
-	return nil, nil
+	var messages []*model.Message
+	err := ms.db.Where(query.ToMap()).Preload("User").Preload("Attachments").Find(&messages).Error
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return messages, nil
 }
 
 func (ms *MessageStore) Create(m *model.Message) error {

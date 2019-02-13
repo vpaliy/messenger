@@ -66,6 +66,19 @@ func (c *Channel) GetTags() []string {
 	return tags
 }
 
+func (c *Channel) IsCreator(id uint) bool {
+	return c.CreatorID == id
+}
+
+func (c *Channel) HasUser(id uint) bool {
+	for _, sub := range c.Members {
+		if sub.UserID == id {
+			return true
+		}
+	}
+	return false
+}
+
 func (c *Channel) CreateSubscription(id uint) *Subscription {
 	return &Subscription{
 		ChannelID: c.ID,

@@ -9,14 +9,17 @@ import (
 	"net/http"
 )
 
-func (h *Handler) getChannel(c echo.Context, param string) (*model.Channel, error) {
-	id := c.Param(param)
-	query := store.NewQuery(map[string]interface{}{"id": id})
+func (h *Handler) getChannel(c echo.Context) (*model.Channel, error) {
+	request := new(channelAction)
+	if err := request.bind(c); err != nil {
+		return nil, err
+	}
+	query := store.NewQuery(map[string]interface{}{"id": request.Channel})
 	return h.channelStore.Get(query)
 }
 
 func (h *Handler) FetchChannel(c echo.Context) error {
-	channel, err := h.getChannel(c, "id")
+	channel, err := h.getChannel(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, utils.NewError(err))
 	}
@@ -39,7 +42,7 @@ func (h *Handler) CreateChannel(c echo.Context) error {
 }
 
 func (h *Handler) UpdateChannel(c echo.Context) error {
-	channel, err := h.getChannel(c, "id")
+	channel, err := h.getChannel(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, utils.NewError(err))
 	}
@@ -48,7 +51,7 @@ func (h *Handler) UpdateChannel(c echo.Context) error {
 	}
 
 	claims := utils.GetJWTClaims(c)
-	if channel.CreatorID != claims.ID {
+	if channel.IsCreator(claims.ID) {
 		return c.JSON(http.StatusForbidden, utils.Forbidden())
 	}
 
@@ -63,17 +66,7 @@ func (h *Handler) UpdateChannel(c echo.Context) error {
 	return c.JSON(http.StatusOK, newChannelResponse(channel))
 }
 
-func (h *Handler) ArchiveChannel(c echo.Context) error {
-	// TODO: implement
-	return nil
-}
-
-func (h *Handler) GetSubscription(c echo.Context) error {
-	// TODO: implement
-	return nil
-}
-
-func (h *Handler) GetAllSubscriptions(c echo.Context) error {
+func (h *Handler) FetchSubscriptions(c echo.Context) error {
 	claims := utils.GetJWTClaims(c)
 	query := store.NewQuery(map[string]interface{}{"user_id": claims.ID})
 	subscriptions, err := h.subscriptionStore.GetAll(query)
@@ -84,13 +77,13 @@ func (h *Handler) GetAllSubscriptions(c echo.Context) error {
 	return c.JSON(http.StatusOK, newUserSubscriptionsResponse(user, subscriptions))
 }
 
-func (h *Handler) UpdateSubscription(c echo.Context) error {
+func (h *Handler) MarkSubscription(c echo.Context) error {
 	// TODO: implement
 	return nil
 }
 
 func (h *Handler) JoinChannel(c echo.Context) error {
-	channel, err := h.getChannel(c, "id")
+	channel, err := h.getChannel(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, utils.NewError(err))
 	}
@@ -105,6 +98,16 @@ func (h *Handler) JoinChannel(c echo.Context) error {
 	return c.JSON(http.StatusOK, newSubscriptionResponse(subscription))
 }
 
+func (h *Handler) ArchiveChannel(c echo.Context) error {
+	// TODO: implement
+	return nil
+}
+
+func (h *Handler) FetchSubscription(c echo.Context) error {
+	// TODO: implement
+	return nil
+}
+
 func (h *Handler) InviteUser(c echo.Context) error {
 	// TODO: implement
 	return nil
@@ -112,5 +115,9 @@ func (h *Handler) InviteUser(c echo.Context) error {
 
 func (h *Handler) KickUser(c echo.Context) error {
 	// TODO: implement
+	return nil
+}
+
+func (h *Handler) FetchChannels(c echo.Context) error {
 	return nil
 }

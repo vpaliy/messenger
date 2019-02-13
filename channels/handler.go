@@ -22,14 +22,20 @@ func NewHandler(db *gorm.DB) *Handler {
 
 func (h *Handler) Register(group *echo.Group) {
 	channels := group.Group("/channels")
-	channels.Use(utils.JWTMiddleware())
-	channels.GET("/:id", h.FetchChannel)
-	channels.POST("", h.CreateChannel)
-	channels.PUT("/:id", h.UpdateChannel)
-	channels.DELETE("/:id", h.ArchiveChannel)
+	subscriptions := group.Group("/subscriptions")
 
-	channels.GET("/subscriptions", h.GetAllSubscriptions)
-	channels.GET("/:channel/subscriptions/:id", h.GetSubscription)
-	channels.DELETE("/:channel/subscriptions/:id", h.KickUser)
-	channels.POST("/:id/subscriptions", h.JoinChannel)
+	channels.Use(utils.JWTMiddleware())
+	subscriptions.Use(utils.JWTMiddleware())
+
+	channels.POST(".create", h.CreateChannel)
+	channels.POST(".update", h.UpdateChannel)
+	channels.POST(".join", h.JoinChannel)
+	channels.POST(".kick", h.KickUser)
+	channels.GET(".list", h.FetchChannels)
+	channels.GET(".info", h.FetchChannel)
+
+	subscriptions.GET(".list", h.FetchSubscriptions)
+	subscriptions.GET(".info", h.FetchSubscription)
+	subscriptions.POST(".mark", h.MarkSubscription)
+	subscriptions.POST(".join", h.JoinChannel)
 }
