@@ -3,7 +3,6 @@
 
 
 ### GET `channels.info`
-<br>
 **Request** parameters:
 
 `token` - JWT token sent in the authorization header (required).
@@ -50,7 +49,6 @@ Sample:
 ```
 
 ### GET `channels.list`
-<br>
 **Request** parameters:
 
 `token` - JWT token sent in the authorization header (required).
@@ -86,7 +84,6 @@ Sample:
 ```
 
 ### POST `channels.create`
-<br>
 **Request** parameters:
 
 `token` - JWT token sent in the authorization header (required).
@@ -140,7 +137,6 @@ Sample:
 ```
 
 ### POST `channels.join`
-<br>
 **Request** parameters:
 
 `token` - JWT token sent in the authorization header (required).
@@ -169,7 +165,6 @@ Sample:
 ```
 
 ### POST `channels.update`
-<br>
 **Request** parameters:
 
 `token` - JWT token sent in the authorization header (required).
