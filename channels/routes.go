@@ -2,22 +2,17 @@ package channels
 
 import (
 	"github.com/labstack/echo"
-	"github.com/vpaliy/telex/model"
 	"github.com/vpaliy/telex/utils"
 	_ "log"
 	"net/http"
 )
 
-func (h *Handler) getChannel(c echo.Context) (*model.Channel, error) {
+func (h *Handler) FetchChannel(c echo.Context) error {
 	request := new(channelAction)
 	if err := request.bind(c); err != nil {
-		return nil, err
+		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	return h.channelStore.Fetch(request.Channel)
-}
-
-func (h *Handler) FetchChannel(c echo.Context) error {
-	channel, err := h.getChannel(c)
+	channel, err := h.channelStore.Fetch(request.Channel)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, utils.NewError(err))
 	}
@@ -40,7 +35,11 @@ func (h *Handler) CreateChannel(c echo.Context) error {
 }
 
 func (h *Handler) UpdateChannel(c echo.Context) error {
-	channel, err := h.getChannel(c)
+	request := new(channelAction)
+	if err := request.bind(c); err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
+	}
+	channel, err := h.channelStore.Fetch(request.Channel)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, utils.NewError(err))
 	}
@@ -48,8 +47,7 @@ func (h *Handler) UpdateChannel(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, utils.NotFound())
 	}
 
-	claims := utils.GetJWTClaims(c)
-	if channel.IsCreator(claims.ID) {
+	if channel.IsCreator(utils.GetUserId(c)) {
 		return c.JSON(http.StatusForbidden, utils.Forbidden())
 	}
 
@@ -65,35 +63,42 @@ func (h *Handler) UpdateChannel(c echo.Context) error {
 }
 
 func (h *Handler) FetchChannels(c echo.Context) error {
-	claims := utils.GetJWTClaims(c)
-	channels, err := h.channelStore.GetForMember(claims.ID)
+	user, err := h.userStore.Fetch(utils.GetUserId(c))
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	user := &channels[0].Creator
+	channels, err := h.channelStore.GetForMember(user.ID)
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
+	}
 	return c.JSON(http.StatusOK, newUserChannelsResponse(user, channels))
 }
 
 func (h *Handler) FetchSubscriptions(c echo.Context) error {
-	claims := utils.GetJWTClaims(c)
-	subscriptions, err := h.subscriptionStore.FetchAll(claims.ID)
+	user, err := h.userStore.Fetch(utils.GetUserId(c))
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	user := &subscriptions[0].User
+	subscriptions, err := h.subscriptionStore.FetchAll(user.ID)
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
+	}
 	return c.JSON(http.StatusOK, newUserSubscriptionsResponse(user, subscriptions))
 }
 
 func (h *Handler) JoinChannel(c echo.Context) error {
-	channel, err := h.getChannel(c)
+	request := new(channelAction)
+	if err := request.bind(c); err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
+	}
+	channel, err := h.channelStore.Fetch(request.Channel)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, utils.NewError(err))
 	}
 	if channel == nil {
 		return c.JSON(http.StatusNotFound, utils.NotFound())
 	}
-	claims := utils.GetJWTClaims(c)
-	subscription := channel.CreateSubscription(claims.ID)
+	subscription := channel.CreateSubscription(utils.GetUserId(c))
 	if err := h.subscriptionStore.Create(channel, subscription); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}

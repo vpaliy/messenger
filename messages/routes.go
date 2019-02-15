@@ -14,17 +14,20 @@ func (h *Handler) GetMessages(c echo.Context) error {
 	if err := request.bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
+	// fetch the channel by name or ID
 	channel, err := h.channelStore.Fetch(request.Channel)
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
+	// check if the channel exists
 	if channel == nil {
 		return c.JSON(http.StatusNotFound, utils.NotFound())
 	}
-	claims := utils.GetJWTClaims(c)
-	if !channel.HasUser(claims.ID) {
+	// check if the user is subscribed to the channel
+	if !channel.HasUser(utils.GetUserId(c)) {
 		return c.JSON(http.StatusForbidden, utils.Forbidden())
 	}
+	// get all the messages
 	messages, err := h.messageStore.GetAll(
 		query,
 		store.From(request.Oldest.Time()),
@@ -34,7 +37,7 @@ func (h *Handler) GetMessages(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	return c.JSON(http.StatusOK, newFetchMessagesResponse(string(channel.ID), messages))
+	return c.JSON(http.StatusOK, newFetchMessagesResponse(channel, messages))
 }
 
 func (h *Handler) PostMessage(c echo.Context) error {
@@ -53,8 +56,7 @@ func (h *Handler) PostMessage(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, utils.NotFound())
 	}
 	// check if the user is subscribed to the chat
-	claims := utils.GetJWTClaims(c)
-	if !channel.HasUser(claims.ID) {
+	if !channel.HasUser(utils.GetUserId(c)) {
 		return c.JSON(http.StatusForbidden, utils.Forbidden())
 	}
 	// create message and send an error message if fails

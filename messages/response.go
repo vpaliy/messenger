@@ -23,9 +23,9 @@ type fetchMessagesResponse struct {
 	Messages []message `json:"messages"`
 }
 
-func newFetchMessagesResponse(channel string, messages []*model.Message) *fetchMessagesResponse {
+func newFetchMessagesResponse(channel *model.Channel, messages []*model.Message) *fetchMessagesResponse {
 	response := new(fetchMessagesResponse)
-	response.Channel = channel
+	response.Channel = channel.ID
 	response.Messages = make([]message, len(messages))
 	for i, m := range messages {
 		response.Messages[i] = *newMessageResponse(m)

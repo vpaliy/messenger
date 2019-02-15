@@ -4,11 +4,12 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"github.com/vpaliy/telex/model"
 	"time"
 )
 
 type JWTClaims struct {
-	ID       uint   `json:"ID"`
+	ID       string `json:"ID"`
 	Username string `json:"username"`
 	jwt.StandardClaims
 }
@@ -26,10 +27,16 @@ func GetJWTClaims(c echo.Context) *JWTClaims {
 	return token.Claims.(*JWTClaims)
 }
 
-func CreateJWT(id uint, username string) string {
+func GetUserId(c echo.Context) string {
+	token := c.Get("user").(*jwt.Token)
+	claims := token.Claims.(*JWTClaims)
+	return claims.ID
+}
+
+func CreateJWT(u *model.User) string {
 	claims := &JWTClaims{
-		id,
-		username,
+		string(u.ID),
+		u.Username,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
 		},

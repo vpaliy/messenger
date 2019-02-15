@@ -71,9 +71,9 @@ func (r *createChannelRequest) bind(c echo.Context) (*model.Channel, error) {
 	if err := c.Validate(r); err != nil {
 		return nil, err
 	}
-	claims := utils.GetJWTClaims(c)
+	//	claims := utils.GetJWTClaims(c)
 	channel := r.toChannel()
-	channel.CreatorID = claims.ID
+	//channel.CreatorID = claims.ID
 	return channel, nil
 }
 
