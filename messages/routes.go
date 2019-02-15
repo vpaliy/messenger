@@ -2,7 +2,6 @@ package messages
 
 import (
 	"github.com/labstack/echo"
-	"github.com/vpaliy/telex/model"
 	"github.com/vpaliy/telex/store"
 	"github.com/vpaliy/telex/utils"
 	_ "log"
@@ -10,19 +9,12 @@ import (
 	"time"
 )
 
-func (h *Handler) getChannel(channel string) (*model.Channel, error) {
-	query := store.NewQuery().Append("id", channel).
-		AddPreload("Creator").
-		AddPreload("Members")
-	return h.channelStore.Get(query)
-}
-
 func (h *Handler) GetMessages(c echo.Context) error {
 	request := new(fetchMessagesRequest)
 	if err := request.bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	channel, err := h.getChannel(request.Channel)
+	channel, err := h.channelStore.Fetch(request.Channel)
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
@@ -33,27 +25,12 @@ func (h *Handler) GetMessages(c echo.Context) error {
 	if !channel.HasUser(claims.ID) {
 		return c.JSON(http.StatusForbidden, utils.Forbidden())
 	}
-	query := store.NewQuery().
-		Append("channel_id", channel.ID).
-		AddPreload("Attachments").
-		AddPreload("User")
-	if request.Limit > 0 {
-		query = query.SetLimit(request.Limit)
-	}
-	if !request.Oldest.IsZero() {
-		if !request.Latest.IsZero() {
-			query = query.SetTimeRange(
-				request.Oldest.Time(),
-				request.Latest.Time(),
-			)
-		} else {
-			query = query.SetTimeRange(
-				request.Oldest.Time(),
-				time.Now(),
-			)
-		}
-	}
-	messages, err := h.messageStore.GetAll(query)
+	messages, err := h.messageStore.GetAll(
+		query,
+		store.From(request.Oldest.Time()),
+		store.To(request.Latest.Time()),
+		store.Limit(request.Limit),
+	)
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
@@ -66,7 +43,7 @@ func (h *Handler) PostMessage(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	channel, err := h.getChannel(request.Channel)
+	channel, err := h.channelStore.Fetch(request.Channel)
 	// internal server error
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))

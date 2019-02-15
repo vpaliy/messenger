@@ -1,4 +1,4 @@
-package messages
+package gorm
 
 import (
 	"github.com/jinzhu/gorm"
@@ -16,40 +16,34 @@ func NewStore(db *gorm.DB) *MessageStore {
 	}
 }
 
-func (ms *MessageStore) Get(query store.Query) (*model.Message, error) {
-	var m model.Message
-	q := ms.db.Where(query.Selection()).Limit(query.Limit())
-	if r := query.TimeRange(); r != nil {
-		q.Where("created_at BETWEEN ? AND ?", r.From, r.To)
+func (s *MessageStore) GetForChannel(channel string, args ...store.Option) ([]*model.Message, error) {
+	var ms []*model.Message
+	options := store.NewOptions(args...)
+	tx := s.db.Where("channel_id = ?", channel).Limit(options.Limit).
+		Preload("Attachments").
+		Preload("User")
+	if tr := options.TimeRange(); tr != nil {
+		tx.Where("created_at BETWEEN ? AND ?", tr.From, tr.To)
 	}
-	for _, entity := range query.Preloads() {
-		q = q.Preload(entity)
-	}
-	if err := q.First(&m).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return nil, nil
-		}
+	if err := tx.Find(&ms).Error; err != nil {
 		return nil, err
 	}
-	return &m, nil
+	return ms, nil
 }
 
-func (ms *MessageStore) GetAll(query store.Query) ([]*model.Message, error) {
-	var messages []*model.Message
-	q := ms.db.Where(query.Selection()).Limit(query.Limit())
-	if r := query.TimeRange(); r != nil {
-		q.Where("created_at BETWEEN ? AND ?", r.From, r.To)
+func (s *MessageStore) GetForUser(user string, args ...store.Option) ([]*model.Message, error) {
+	var ms []*model.Message
+	options := store.NewOptions(args...)
+	tx := s.db.Where("user_id = ?", user).Limit(options.Limit).
+		Preload("Attachments").
+		Preload("User")
+	if tr := options.TimeRange(); tr != nil {
+		tx.Where("created_at BETWEEN ? AND ?", tr.From, tr.To)
 	}
-	for _, entity := range query.Preloads() {
-		q = q.Preload(entity)
-	}
-	if err := q.Find(&messages).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return nil, nil
-		}
+	if err := tx.Find(&ms).Error; err != nil {
 		return nil, err
 	}
-	return messages, nil
+	return ms, nil
 }
 
 func (ms *MessageStore) Create(m *model.Message) error {
@@ -78,9 +72,11 @@ func (ms *MessageStore) Create(m *model.Message) error {
 }
 
 func (ms *MessageStore) Update(u *model.Message) error {
+	// TODO: update attachments if needed
 	return ms.db.Model(u).Update(u).Error
 }
 
 func (ms *MessageStore) Delete(u *model.Message) error {
+	// TODO: delete attachments too
 	return ms.db.Model(u).Delete(u).Error
 }

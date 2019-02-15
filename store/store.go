@@ -1,68 +1,40 @@
 package store
 
-import "time"
+import "github.com/vpaliy/telex/model"
 
-type Query interface {
-	Selection() map[string]interface{}
-	TimeRange() *TimeRange
-	Preloads() []string
-	Limit() int
-	AddPreload(string) Query
-	Append(key string, value interface{}) Query
-	SetLimit(limit int) Query
-	SetTimeRange(time.Time, time.Time) Query
+type UserStore interface {
+	Fetch(string) (*model.User, error)
+	// search by name
+	Search(string, ...Option) ([]*model.User, error)
+	Create(*model.User) error
+	Update(*model.User) error
+	Delete(*model.User) error
 }
 
-type TimeRange struct {
-	From time.Time
-	To   time.Time
+type MessageStore interface {
+	GetForChannel(string, ...Option) ([]*model.Message, error)
+	GetForUser(string, ...Option) ([]*model.Message, error)
+	Create(*model.Message) error
+	Update(*model.Message) error
+	Delete(*model.Message) error
 }
 
-type query struct {
-	selection map[string]interface{}
-	limit     int
-	tmrange   *TimeRange
-	preloads  []string
+type SubscriptionStore interface {
+	//fetch by channel's name
+	Fetch(string) (*model.Subscription, error)
+	//fetch all subscriptions for a user
+	FetchAll(string, ...Option) ([]*model.Subscription, error)
+	Create(*model.User, *model.Channel) error
+	Update(*model.Subscription) error
+	Delete(*model.Subscription) error
 }
 
-func NewQuery() Query {
-	return &query{
-		selection: make(map[string]interface{}),
-		limit:     -1,
-	}
-}
-
-func (q *query) SetTimeRange(oldest, latest time.Time) Query {
-	q.tmrange = &TimeRange{oldest, latest}
-	return q
-}
-func (q *query) SetLimit(limit int) Query {
-	q.limit = limit
-	return q
-}
-
-func (q *query) Append(key string, value interface{}) Query {
-	q.selection[key] = value
-	return q
-}
-
-func (q *query) Limit() int {
-	return q.limit
-}
-
-func (q *query) TimeRange() *TimeRange {
-	return q.tmrange
-}
-
-func (q *query) AddPreload(preload string) Query {
-	q.preloads = append(q.preloads, preload)
-	return q
-}
-
-func (q *query) Preloads() []string {
-	return q.preloads
-}
-
-func (q *query) Selection() map[string]interface{} {
-	return q.selection
+type ChannelStore interface {
+	Fetch(string) (*model.Channel, error)
+	Search(string, ...Option) ([]*model.Channel, error)
+	GetForMember(string, ...Option) ([]*model.Channel, error)
+	GetCreatedBy(string, ...Option) ([]*model.Channel, error)
+	Create(*model.Channel) error
+	Update(*model.Channel) error
+	Delete(*model.Channel) error
 }

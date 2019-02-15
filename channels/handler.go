@@ -1,7 +1,6 @@
 package channels
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
 	"github.com/vpaliy/telex/store"
 	"github.com/vpaliy/telex/utils"
@@ -12,11 +11,10 @@ type Handler struct {
 	subscriptionStore store.SubscriptionStore
 }
 
-// TODO: use dependency injection for this
-func NewHandler(db *gorm.DB) *Handler {
+func NewHandler(cs store.ChannelStore, ss store.SubscriptionStore) *Handler {
 	return &Handler{
-		channelStore:      &ChannelStore{db},
-		subscriptionStore: &SubscriptionStore{db},
+		channelStore:      cs,
+		subscriptionStore: ss,
 	}
 }
 
@@ -30,9 +28,9 @@ func (h *Handler) Register(group *echo.Group) {
 	channels.POST(".create", h.CreateChannel)
 	channels.POST(".update", h.UpdateChannel)
 	channels.POST(".join", h.JoinChannel)
-	channels.POST(".kick", h.KickUser)
 	channels.GET(".list", h.FetchChannels)
 	channels.GET(".info", h.FetchChannel)
+	channels.GET(".search", h.SearchChannels)
 
 	subscriptions.GET(".list", h.FetchSubscriptions)
 	subscriptions.GET(".info", h.FetchSubscription)

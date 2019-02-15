@@ -1,7 +1,6 @@
 package users
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
 	"github.com/vpaliy/telex/store"
 )
@@ -10,9 +9,10 @@ type Handler struct {
 	userStore store.UserStore
 }
 
-func NewHandler(db *gorm.DB) *Handler {
-	store := &UserStore{db}
-	return &Handler{store}
+func NewHandler(us store.UserStore) *Handler {
+	return &Handler{
+		userStore: us,
+	}
 }
 
 func (h *Handler) Register(group *echo.Group) {

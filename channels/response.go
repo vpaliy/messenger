@@ -14,6 +14,21 @@ type participant struct {
 	Image    *string `json:"image"`
 }
 
+// represents a channel info
+type channel struct {
+	ID          uint            `json:"id"`
+	Name        string          `json:"name"`
+	CreatedAt   utils.Timestamp `json:"created_at"`
+	UpdatedAt   utils.Timestamp `json:"updated_at"`
+	CreatorID   uint            `json:"creator_id"`
+	Private     bool            `json:"private"`
+	Description string          `json:"description"`
+	Tags        []string        `json:"tags"`
+	Image       *string         `json:"image"`
+	Archived    bool            `json:"archived"`
+	Members     []string        `json:"members"`
+}
+
 // represents a user subscription to a channel
 type subscriptionResponse struct {
 	ID        uint            `json:"id"`
@@ -45,6 +60,11 @@ type userSubscriptionsResponse struct {
 	Subscriptions []*subscriptionResponse `json:"subscriptions"`
 }
 
+type userChannelsResponse struct {
+	User     participant `json:"user"`
+	Channels []*channel  `json:"channels"`
+}
+
 func newParticipant(u *model.User) participant {
 	return participant{
 		ID:       u.ID,
@@ -64,6 +84,51 @@ func newSubscriptionResponse(s *model.Subscription) *subscriptionResponse {
 		Snippet:   s.Snippet,
 		Channel:   s.ChannelID,
 		Unread:    s.Unread,
+	}
+}
+
+/*
+ID          uint            `json:"id"`
+Name        string          `json:"name"`
+CreatedAt   utils.Timestamp `json:"created_at"`
+UpdatedAt   utils.Timestamp `json:"updated_at"`
+CreatorID   uint            `json:"creator_id"`
+Private     bool            `json:"private"`
+Description string          `json:"description"`
+Tags        []string        `json:"tags"`
+Image       *string         `json:"image"`
+Archived    bool            `json:"archived"`
+Members     []string        `json:"members"`
+*/
+
+func newChannel(c *model.Channel) *channel {
+	members := make([]string, len(c.Members))
+	for i, member := range c.Members {
+		members[i] = string(member.UserID)
+	}
+	return &channel{
+		ID:          c.ID,
+		Name:        c.Name,
+		CreatorID:   c.CreatorID,
+		CreatedAt:   utils.Timestamp(c.CreatedAt),
+		UpdatedAt:   utils.Timestamp(c.UpdatedAt),
+		Private:     c.Private,
+		Description: c.Description,
+		Tags:        c.GetTags(),
+		//	Image:       c.Image,
+		Archived: c.Archived,
+		Members:  members,
+	}
+}
+
+func newUserChannelsResponse(u *model.User, cs []*model.Channel) *userChannelsResponse {
+	channels := make([]*channel, len(cs))
+	for i, channel := range cs {
+		channels[i] = newChannel(channel)
+	}
+	return &userChannelsResponse{
+		User:     newParticipant(u),
+		Channels: channels,
 	}
 }
 
