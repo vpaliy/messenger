@@ -12,9 +12,7 @@ func (h *Handler) Login(c echo.Context) error {
 	if err := request.bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	query := store.NewQuery(map[string]interface{}{
-		"username": request.Username,
-	})
+	query := store.NewQuery().Append("username", request.Username)
 	user, err := h.userStore.Get(query)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, utils.NewError(err))

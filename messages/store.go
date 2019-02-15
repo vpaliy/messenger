@@ -18,7 +18,14 @@ func NewStore(db *gorm.DB) *MessageStore {
 
 func (ms *MessageStore) Get(query store.Query) (*model.Message, error) {
 	var m model.Message
-	if err := ms.db.Where(query.ToMap()).First(&m).Error; err != nil {
+	q := ms.db.Where(query.Selection()).Limit(query.Limit())
+	if r := query.TimeRange(); r != nil {
+		q.Where("created_at BETWEEN ? AND ?", r.From, r.To)
+	}
+	for _, entity := range query.Preloads() {
+		q = q.Preload(entity)
+	}
+	if err := q.First(&m).Error; err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return nil, nil
 		}
@@ -29,8 +36,14 @@ func (ms *MessageStore) Get(query store.Query) (*model.Message, error) {
 
 func (ms *MessageStore) GetAll(query store.Query) ([]*model.Message, error) {
 	var messages []*model.Message
-	err := ms.db.Where(query.ToMap()).Preload("User").Preload("Attachments").Find(&messages).Error
-	if err != nil {
+	q := ms.db.Where(query.Selection()).Limit(query.Limit())
+	if r := query.TimeRange(); r != nil {
+		q.Where("created_at BETWEEN ? AND ?", r.From, r.To)
+	}
+	for _, entity := range query.Preloads() {
+		q = q.Preload(entity)
+	}
+	if err := q.Find(&messages).Error; err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return nil, nil
 		}

@@ -24,12 +24,14 @@ func NewSubscriptionStore(db *gorm.DB) *SubscriptionStore {
 
 func (cs *ChannelStore) Get(query store.Query) (*model.Channel, error) {
 	var m model.Channel
-	err := cs.db.Where(query.ToMap()).
-		Preload("Tags").
-		Preload("Creator").
-		Preload("Members").
-		Find(&m).Error
-	if err != nil {
+	q := cs.db.Where(query.Selection()).Limit(query.Limit())
+	if r := query.TimeRange(); r != nil {
+		q.Where("created_at BETWEEN ? AND ?", r.From, r.To)
+	}
+	for _, entity := range query.Preloads() {
+		q = q.Preload(entity)
+	}
+	if err := q.Find(&m).Error; err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return nil, nil
 		}
@@ -39,7 +41,21 @@ func (cs *ChannelStore) Get(query store.Query) (*model.Channel, error) {
 }
 
 func (cs *ChannelStore) GetAll(query store.Query) ([]*model.Channel, error) {
-	return nil, nil
+	var channels []*model.Channel
+	q := cs.db.Where(query.Selection()).Limit(query.Limit())
+	if r := query.TimeRange(); r != nil {
+		q.Where("created_at BETWEEN ? AND ?", r.From, r.To)
+	}
+	for _, entity := range query.Preloads() {
+		q = q.Preload(entity)
+	}
+	if err := q.Find(&channels).Error; err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return channels, nil
 }
 
 func filterTags(tags []model.Tag) []model.Tag {
@@ -115,7 +131,14 @@ func (cs *ChannelStore) Delete(u *model.Channel) error {
 // SubscriptionStore methods
 func (ss *SubscriptionStore) Get(query store.Query) (*model.Subscription, error) {
 	var m model.Subscription
-	if err := ss.db.Where(query.ToMap()).First(&m).Error; err != nil {
+	q := ss.db.Where(query.Selection()).Limit(query.Limit())
+	if r := query.TimeRange(); r != nil {
+		q.Where("created_at BETWEEN ? AND ?", r.From, r.To)
+	}
+	for _, entity := range query.Preloads() {
+		q = q.Preload(entity)
+	}
+	if err := q.Find(&m).Error; err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return nil, nil
 		}
@@ -126,9 +149,14 @@ func (ss *SubscriptionStore) Get(query store.Query) (*model.Subscription, error)
 
 func (ss *SubscriptionStore) GetAll(query store.Query) ([]*model.Subscription, error) {
 	var subs []*model.Subscription
-	err := ss.db.Where(query.ToMap()).
-		Preload("User").Find(&subs).Error
-	if err != nil {
+	q := ss.db.Where(query.Selection()).Limit(query.Limit())
+	if r := query.TimeRange(); r != nil {
+		q.Where("created_at BETWEEN ? AND ?", r.From, r.To)
+	}
+	for _, entity := range query.Preloads() {
+		q = q.Preload(entity)
+	}
+	if err := q.Find(&subs).Error; err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return nil, nil
 		}

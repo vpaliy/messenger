@@ -40,22 +40,23 @@ func (r *fetchMessagesRequest) bind(c echo.Context) error {
 	return nil
 }
 
-func (r *createMessageRequest) bind(c echo.Context) error {
+func (r *createMessageRequest) bind(c echo.Context) (*model.Message, error) {
 	if err := c.Bind(r); err != nil {
-		return err
+		return nil, err
 	}
 	if err := c.Validate(r); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	claims := utils.GetJWTClaims(c)
+	message := r.toMessage()
+	message.UserID = claims.ID
+	return message, nil
 }
 
-func (r *createMessageRequest) toMessage(c echo.Context) *model.Message {
+func (r *createMessageRequest) toMessage() *model.Message {
 	id, _ := strconv.Atoi(r.Channel)
-	claims := utils.GetJWTClaims(c)
 	message := new(model.Message)
 	message.ChannelID = uint(id)
-	message.UserID = claims.ID
 	message.Text = r.Text
 	message.Attachments = make([]model.Attachment, len(r.Attachments))
 	for i, a := range r.Attachments {

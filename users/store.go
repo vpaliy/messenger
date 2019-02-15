@@ -18,7 +18,7 @@ func NewUserStore(db *gorm.DB) *UserStore {
 
 func (us *UserStore) Get(query store.Query) (*model.User, error) {
 	var m model.User
-	if err := us.db.Where(query.ToMap()).First(&m).Error; err != nil {
+	if err := us.db.Where(query.Selection).Limit(query.Limit).First(&m).Error; err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return nil, nil
 		}

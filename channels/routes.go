@@ -14,7 +14,11 @@ func (h *Handler) getChannel(c echo.Context) (*model.Channel, error) {
 	if err := request.bind(c); err != nil {
 		return nil, err
 	}
-	query := store.NewQuery(map[string]interface{}{"id": request.Channel})
+	query := store.NewQuery().
+		Append("id", request.Channel).
+		AddPreload("Tags").
+		AddPreload("Creator").
+		AddPreload("Members")
 	return h.channelStore.Get(query)
 }
 
@@ -68,7 +72,7 @@ func (h *Handler) UpdateChannel(c echo.Context) error {
 
 func (h *Handler) FetchSubscriptions(c echo.Context) error {
 	claims := utils.GetJWTClaims(c)
-	query := store.NewQuery(map[string]interface{}{"user_id": claims.ID})
+	query := store.NewQuery().Append("user_id", claims.ID).AddPreload("User")
 	subscriptions, err := h.subscriptionStore.GetAll(query)
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
