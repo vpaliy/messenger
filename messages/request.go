@@ -4,7 +4,6 @@ import (
 	"github.com/labstack/echo"
 	"github.com/vpaliy/telex/model"
 	"github.com/vpaliy/telex/utils"
-	"strconv"
 )
 
 type attachment struct {

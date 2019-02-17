@@ -7,12 +7,14 @@ import (
 )
 
 type Handler struct {
+	userStore         store.UserStore
 	channelStore      store.ChannelStore
 	subscriptionStore store.SubscriptionStore
 }
 
-func NewHandler(cs store.ChannelStore, ss store.SubscriptionStore) *Handler {
+func NewHandler(cs store.ChannelStore, ss store.SubscriptionStore, us store.UserStore) *Handler {
 	return &Handler{
+		userStore:         us,
 		channelStore:      cs,
 		subscriptionStore: ss,
 	}

@@ -2,11 +2,11 @@ package messages
 
 import (
 	"github.com/labstack/echo"
+	"github.com/vpaliy/telex/model"
 	"github.com/vpaliy/telex/store"
 	"github.com/vpaliy/telex/utils"
 	_ "log"
 	"net/http"
-	"time"
 )
 
 func (h *Handler) fetchChannel(ch string, c echo.Context) (*model.Channel, error) {
@@ -26,7 +26,7 @@ func (h *Handler) GetMessages(c echo.Context) error {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
 	// fetch the channel by name or ID
-	channel, err := h.fetchChannel(request.Channel)
+	channel, err := h.fetchChannel(request.Channel, c)
 	// if there is an error, stop
 	if channel == nil {
 		return err
@@ -36,7 +36,7 @@ func (h *Handler) GetMessages(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, utils.Forbidden())
 	}
 	// get all the messages
-	messages, err := h.messageStore.GetAll(
+	messages, err := h.messageStore.GetForChannel(
 		request.Channel,
 		store.From(request.Oldest.Time()),
 		store.To(request.Latest.Time()),
@@ -53,7 +53,7 @@ func (h *Handler) PostMessage(c echo.Context) error {
 	if err := request.bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	channel, err := h.fetchChannel(request.Channel)
+	channel, err := h.fetchChannel(request.Channel, c)
 	// if there is an error
 	if channel == nil {
 		return err
@@ -78,7 +78,7 @@ func (h *Handler) Search(c echo.Context) error {
 	if err := request.bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	channel, err := h.fetchChannel(request.Channel)
+	channel, err := h.fetchChannel(request.Channel, c)
 	// if there is an error or the channel doesn't exist, stop
 	if channel == nil {
 		return err
@@ -113,7 +113,7 @@ func (h *Handler) DeleteMessage(c echo.Context) error {
 	}
 	// only the author can delete the message
 	// TODO: allow admins to delete the message too
-	if message.UserID != utils.GetUserId(d) {
+	if message.UserID != utils.GetUserId(c) {
 		return c.JSON(http.StatusForbidden, utils.Forbidden())
 	}
 	// delete it
@@ -139,7 +139,7 @@ func (h *Handler) EditMessage(c echo.Context) error {
 	}
 	// only the author can edit the message
 	// TODO: allow other people to edit the message too
-	if message.UserID != utils.GetUserId(d) {
+	if message.UserID != utils.GetUserId(c) {
 		return c.JSON(http.StatusForbidden, utils.Forbidden())
 	}
 	// update the message

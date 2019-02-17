@@ -9,7 +9,7 @@ import (
 )
 
 type JWTClaims struct {
-	ID       string `json:"ID"`
+	ID       uint   `json:"ID"`
 	Username string `json:"username"`
 	jwt.StandardClaims
 }
@@ -27,7 +27,7 @@ func GetJWTClaims(c echo.Context) *JWTClaims {
 	return token.Claims.(*JWTClaims)
 }
 
-func GetUserId(c echo.Context) string {
+func GetUserId(c echo.Context) uint {
 	token := c.Get("user").(*jwt.Token)
 	claims := token.Claims.(*JWTClaims)
 	return claims.ID
@@ -35,7 +35,7 @@ func GetUserId(c echo.Context) string {
 
 func CreateJWT(u *model.User) string {
 	claims := &JWTClaims{
-		string(u.ID),
+		u.ID,
 		u.Username,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),

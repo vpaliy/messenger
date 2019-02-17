@@ -2,22 +2,31 @@ package channels
 
 import (
 	"github.com/labstack/echo"
+	"github.com/vpaliy/telex/model"
 	"github.com/vpaliy/telex/utils"
 	_ "log"
 	"net/http"
 )
 
-func (h *Handler) FetchChannel(c echo.Context) error {
+func (h *Handler) getChannel(c echo.Context) (*model.Channel, error) {
 	request := new(channelAction)
 	if err := request.bind(c); err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
+		return nil, c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
 	channel, err := h.channelStore.Fetch(request.Channel)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, utils.NewError(err))
+		return nil, c.JSON(http.StatusInternalServerError, utils.NewError(err))
 	}
 	if channel == nil {
-		return c.JSON(http.StatusNotFound, utils.NotFound())
+		return nil, c.JSON(http.StatusNotFound, utils.NotFound())
+	}
+	return channel, nil
+}
+
+func (h *Handler) FetchChannel(c echo.Context) error {
+	channel, err := h.getChannel(c)
+	if channel == nil {
+		return err
 	}
 	return c.JSON(http.StatusOK, newChannelResponse(channel))
 }
@@ -35,22 +44,13 @@ func (h *Handler) CreateChannel(c echo.Context) error {
 }
 
 func (h *Handler) UpdateChannel(c echo.Context) error {
-	request := new(channelAction)
-	if err := request.bind(c); err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
-	}
-	channel, err := h.channelStore.Fetch(request.Channel)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, utils.NewError(err))
-	}
+	channel, err := h.getChannel(c)
 	if channel == nil {
-		return c.JSON(http.StatusNotFound, utils.NotFound())
+		return err
 	}
-
 	if channel.IsCreator(utils.GetUserId(c)) {
 		return c.JSON(http.StatusForbidden, utils.Forbidden())
 	}
-
 	request := new(updateChannelRequest)
 	if err := request.bind(c, channel); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
@@ -58,7 +58,6 @@ func (h *Handler) UpdateChannel(c echo.Context) error {
 	if err := h.channelStore.Update(channel); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-
 	return c.JSON(http.StatusOK, newChannelResponse(channel))
 }
 
@@ -87,18 +86,15 @@ func (h *Handler) FetchSubscriptions(c echo.Context) error {
 }
 
 func (h *Handler) JoinChannel(c echo.Context) error {
-	request := new(channelAction)
-	if err := request.bind(c); err != nil {
+	channel, err := h.getChannel(c)
+	if channel == nil {
+		return err
+	}
+	user, err := h.userStore.Fetch(utils.GetUserId(c))
+	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	channel, err := h.channelStore.Fetch(request.Channel)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, utils.NewError(err))
-	}
-	if channel == nil {
-		return c.JSON(http.StatusNotFound, utils.NotFound())
-	}
-	subscription := channel.CreateSubscription(utils.GetUserId(c))
+	subscription := channel.CreateSubscription(user.ID)
 	if err := h.subscriptionStore.Create(channel, subscription); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
