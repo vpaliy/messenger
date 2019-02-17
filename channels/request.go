@@ -27,6 +27,11 @@ type channelAction struct {
 	Channel string `json:"channel" validate:"required"`
 }
 
+type channelSearchRequest struct {
+	Query string `json:"query" validate:"required"`
+	Tags  string `json:"tags"`
+}
+
 type markChannelRequest struct {
 	Channel   string          `json:"channel" validate:"required"`
 	Timestamp utils.Timestamp `json:"ts" validate:"required"`
@@ -71,15 +76,14 @@ func (r *createChannelRequest) bind(c echo.Context) (*model.Channel, error) {
 	if err := c.Validate(r); err != nil {
 		return nil, err
 	}
-	//	claims := utils.GetJWTClaims(c)
-	channel := r.toChannel()
-	//channel.CreatorID = claims.ID
+	channel := r.toChannel(utils.GetUserId(c))
 	return channel, nil
 }
 
-func (c *createChannelRequest) toChannel() *model.Channel {
+func (c *createChannelRequest) toChannel(id uint) *model.Channel {
 	return &model.Channel{
 		Name:        c.Channel,
+		CreatorID:   id,
 		Tags:        model.CreateTags(c.Tags),
 		Image:       c.Image,
 		Description: c.Description,

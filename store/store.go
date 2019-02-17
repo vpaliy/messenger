@@ -12,8 +12,10 @@ type UserStore interface {
 }
 
 type MessageStore interface {
+	Fetch(string) (*model.Message, error)
 	GetForChannel(string, ...Option) ([]*model.Message, error)
 	GetForUser(string, ...Option) ([]*model.Message, error)
+	Search(string, string, ...Option) ([]*model.Message, error)
 	Create(*model.Message) error
 	Update(*model.Message) error
 	Delete(*model.Message) error

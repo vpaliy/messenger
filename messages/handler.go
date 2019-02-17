@@ -25,5 +25,6 @@ func (h *Handler) Register(group *echo.Group) {
 	chat.GET(".list", h.GetMessages)
 	chat.POST(".create", h.PostMessage)
 	chat.POST(".edit", h.EditMessage)
+	chat.POST(".search", h.Search)
 	chat.POST(".delete", h.DeleteMessage)
 }

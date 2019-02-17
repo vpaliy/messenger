@@ -31,6 +31,23 @@ func (s *MessageStore) GetForChannel(channel string, args ...store.Option) ([]*m
 	return ms, nil
 }
 
+func (s *MessageStore) Search(channel string, query string, args ...store.Option) ([]*model.Message, error) {
+	var ms []*model.Message
+	options := store.NewOptions(args...)
+	tx := s.db.Where("channel_id = ?", channel).
+		Where("text LIKE ?", query+"%").
+		Limit(options.Limit).
+		Preload("Attachments").
+		Preload("User")
+	if tr := options.TimeRange(); tr != nil {
+		tx.Where("created_at BETWEEN ? AND ?", tr.From, tr.To)
+	}
+	if err := tx.Find(&ms).Error; err != nil {
+		return nil, err
+	}
+	return ms, nil
+}
+
 func (s *MessageStore) GetForUser(user string, args ...store.Option) ([]*model.Message, error) {
 	var ms []*model.Message
 	options := store.NewOptions(args...)

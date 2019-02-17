@@ -10,8 +10,27 @@ type userLoginRequest struct {
 	Password string `json:"password" validate:"required"`
 }
 
-func newUserLoginRequest() *userLoginRequest {
-	return new(userLoginRequest)
+type userRegisterRequest struct {
+	Username string `json:"username" validate:"required"`
+	Email    string `json:"email" validate:"required"`
+	Password string `json:"password" validate:"required"`
+	FullName string `json:"fullName"`
+	Bio      string `json:"bio"`
+}
+
+type forgotPasswordRequest struct {
+	// either a username or email
+	Identifier string `json:"identifier" validate:"required"`
+}
+
+func (r *forgotPasswordRequest) bind(c echo.Context) error {
+	if err := c.Bind(r); err != nil {
+		return err
+	}
+	if err := c.Validate(r); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *userLoginRequest) bind(c echo.Context) error {
@@ -22,18 +41,6 @@ func (r *userLoginRequest) bind(c echo.Context) error {
 		return err
 	}
 	return nil
-}
-
-type userRegisterRequest struct {
-	Username string `json:"username" validate:"required"`
-	Email    string `json:"email" validate:"required"`
-	Password string `json:"password" validate:"required"`
-	FullName string `json:"fullName"`
-	Bio      string `json:"bio"`
-}
-
-func newUserRegisterRequest() *userRegisterRequest {
-	return new(userRegisterRequest)
 }
 
 func (r *userRegisterRequest) bind(c echo.Context) error {

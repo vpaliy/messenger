@@ -87,20 +87,6 @@ func newSubscriptionResponse(s *model.Subscription) *subscriptionResponse {
 	}
 }
 
-/*
-ID          uint            `json:"id"`
-Name        string          `json:"name"`
-CreatedAt   utils.Timestamp `json:"created_at"`
-UpdatedAt   utils.Timestamp `json:"updated_at"`
-CreatorID   uint            `json:"creator_id"`
-Private     bool            `json:"private"`
-Description string          `json:"description"`
-Tags        []string        `json:"tags"`
-Image       *string         `json:"image"`
-Archived    bool            `json:"archived"`
-Members     []string        `json:"members"`
-*/
-
 func newChannel(c *model.Channel) *channel {
 	members := make([]string, len(c.Members))
 	for i, member := range c.Members {

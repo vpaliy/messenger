@@ -7,7 +7,7 @@ import (
 )
 
 func (h *Handler) Login(c echo.Context) error {
-	request := newUserLoginRequest()
+	request := new(userLoginRequest)
 	if err := request.bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
@@ -26,7 +26,7 @@ func (h *Handler) Login(c echo.Context) error {
 }
 
 func (h *Handler) SignUp(c echo.Context) error {
-	request := newUserRegisterRequest()
+	request := new(userRegisterRequest)
 	if err := request.bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
@@ -39,5 +39,14 @@ func (h *Handler) SignUp(c echo.Context) error {
 }
 
 func (h *Handler) ForgotPassword(c echo.Context) error {
+	request := new(forgotPasswordRequest)
+	if err := request.bind(c); err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
+	}
+	// TODO: send an email to that email address, work on the response
+	_, err := h.userStore.Fetch(request.Identifier)
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
+	}
 	return nil
 }
