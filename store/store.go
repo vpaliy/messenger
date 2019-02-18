@@ -26,7 +26,7 @@ type SubscriptionStore interface {
 	Fetch(string) (*model.Subscription, error)
 	//fetch all subscriptions for a user
 	FetchAll(interface{}, ...Option) ([]*model.Subscription, error)
-	Create(*model.User, *model.Channel) error
+	Create(*model.Channel, *model.Subscription) error
 	Update(*model.Subscription) error
 	Delete(*model.Subscription) error
 }

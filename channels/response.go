@@ -65,6 +65,10 @@ type userChannelsResponse struct {
 	Channels []*channel  `json:"channels"`
 }
 
+type channelsResponse struct {
+	Channels []*channel `json:"channels"`
+}
+
 func newParticipant(u *model.User) participant {
 	return participant{
 		ID:       u.ID,
@@ -104,6 +108,16 @@ func newChannel(c *model.Channel) *channel {
 		//	Image:       c.Image,
 		Archived: c.Archived,
 		Members:  members,
+	}
+}
+
+func newChannelsResponse(cs []*model.Channel) *channelsResponse {
+	channels := make([]*channel, len(cs))
+	for i, channel := range cs {
+		channels[i] = newChannel(channel)
+	}
+	return &channelsResponse{
+		Channels: channels,
 	}
 }
 

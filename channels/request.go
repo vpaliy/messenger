@@ -28,8 +28,11 @@ type channelAction struct {
 }
 
 type channelSearchRequest struct {
-	Query string `json:"query" validate:"required"`
-	Tags  string `json:"tags"`
+	Query  string          `json:"query" validate:"required"`
+	Tags   string          `json:"tags"`
+	Latest utils.Timestamp `json:"latest"`
+	Oldest utils.Timestamp `json:"oldest"`
+	Limit  int16           `json:"limit"`
 }
 
 type markChannelRequest struct {

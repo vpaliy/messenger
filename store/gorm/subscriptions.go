@@ -28,16 +28,22 @@ func (s *SubscriptionStore) Fetch(id string) (*model.Subscription, error) {
 }
 
 func (s *SubscriptionStore) FetchAll(user interface{}, args ...store.Option) ([]*model.Subscription, error) {
-	var ms []*model.Subscription
+	var ss []*model.Subscription
 	options := store.NewOptions(args...)
 	tx := s.db.Where("user_id = ?", user).Limit(options.Limit)
 	if tr := options.TimeRange(); tr != nil {
 		tx.Where("created_at BETWEEN ? AND ?", tr.From, tr.To)
 	}
-	if err := tx.Find(&ms).Error; err != nil {
+	if err := tx.Find(&ss).Error; err != nil {
 		return nil, err
 	}
-	return ms, nil
+	for _, sub := range ss {
+		s.db.Model(&model.Message{}).
+			Where("channel_id = ?", sub.ChannelID).
+			Where("created_at BETWEEN ? AND ?", sub.UpdatedAt, time.Now()).
+			Count(sub.Unread)
+	}
+	return ss, nil
 }
 
 func (ss *SubscriptionStore) Create(c *model.Channel, s *model.Subscription) error {
@@ -48,9 +54,9 @@ func (ss *SubscriptionStore) Create(c *model.Channel, s *model.Subscription) err
 	return ss.db.Model(s).Preload("User").First(s).Error
 }
 
-func (ss *SubscriptionStore) Update(c *model.Channel, s *model.Subscription) error {
-	// TODO: implement this one
-	return nil
+func (ss *SubscriptionStore) Update(s *model.Subscription) error {
+	s.Unread = 0
+	return ss.db.Model(s).Update(s).Error
 }
 
 func (ss *SubscriptionStore) Delete(c *model.Channel, s *model.Subscription) error {
