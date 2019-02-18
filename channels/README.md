@@ -1,9 +1,6 @@
 
-## HTTP-RPC Interface
-
-
 ### GET `channels.info`
-**Request** parameters:
+**Request**
 
 `token` - JWT token sent in the authorization header (required).
 
@@ -49,7 +46,7 @@ Sample:
 ```
 
 ### GET `channels.list`
-**Request** parameters:
+**Request**
 
 `token` - JWT token sent in the authorization header (required).
 
@@ -84,7 +81,7 @@ Sample:
 ```
 
 ### POST `channels.create`
-**Request** parameters:
+**Request**
 
 `token` - JWT token sent in the authorization header (required).
 
@@ -137,7 +134,7 @@ Sample:
 ```
 
 ### POST `channels.join`
-**Request** parameters:
+**Request**
 
 `token` - JWT token sent in the authorization header (required).
 
@@ -165,7 +162,7 @@ Sample:
 ```
 
 ### POST `channels.update`
-**Request** parameters:
+**Request**
 
 `token` - JWT token sent in the authorization header (required).
 
