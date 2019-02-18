@@ -2,17 +2,11 @@ package main
 
 import (
 	"github.com/labstack/echo"
-	_ "github.com/vpaliy/telex/channels"
 	"github.com/vpaliy/telex/db"
+	"github.com/vpaliy/telex/di"
 	"github.com/vpaliy/telex/handler"
-	_ "github.com/vpaliy/telex/messages"
 	"github.com/vpaliy/telex/router"
 	"github.com/vpaliy/telex/rtm"
-	_ "github.com/vpaliy/telex/users"
-)
-
-var (
-	manager = rtm.NewChannelManager(&rtm.TestRepository{})
 )
 
 func registerHTTPHandlers(g *echo.Group, hs ...handler.Handler) {
@@ -21,7 +15,7 @@ func registerHTTPHandlers(g *echo.Group, hs ...handler.Handler) {
 	}
 }
 
-func registerRTM(e *echo.Echo) {
+func registerRTM(e *echo.Echo, manager rtm.ChannelManager) {
 	e.GET("/ws", func(c echo.Context) error {
 		ws := rtm.NewWebSocket(rtm.DefaultWebSocketConfig)
 		client := rtm.NewClient(ws, manager)
@@ -31,8 +25,7 @@ func registerRTM(e *echo.Echo) {
 
 func main() {
 	e := router.New()
-	//api := e.Group("/api")
-
+	api := e.Group("/api")
 	database, err := db.New(db.CreateTestConfig())
 	if err != nil {
 		e.Logger.Fatal(err)
@@ -41,12 +34,14 @@ func main() {
 	defer database.Close()
 	db.AutoMigrate(database)
 
-	/*	registerHTTPHandlers(api,
-		users.NewHandler(database),
-		channels.NewHandler(database),
-		messages.NewHandler(database),
-	)  */
-	registerRTM(e)
+	registerHTTPHandlers(api,
+		di.InitializeUserHandler(database),
+		di.InitializeChannelHandler(database),
+		di.InitializeMessageHandler(database),
+	)
+	manager := di.InitializeChannelManager()
+	registerRTM(e, manager)
+
 	go manager.Run()
 	e.Logger.Fatal(e.Start("127.0.0.1:8080"))
 }

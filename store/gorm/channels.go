@@ -133,7 +133,7 @@ func (s *ChannelStore) GetForMember(id string, args ...store.Option) ([]*model.C
 	// TODO: join tables
 	var ms []*model.Channel
 	options := store.NewOptions(args...)
-	tx := s.db.Where("creator_id = ?", user).Limit(options.Limit).
+	tx := s.db.Where("creator_id = ?", id).Limit(options.Limit).
 		Preload("Tags").
 		Preload("Creator").
 		Preload("Members")

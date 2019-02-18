@@ -4,13 +4,14 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/vpaliy/telex/model"
 	"github.com/vpaliy/telex/store"
+	"time"
 )
 
 type SubscriptionStore struct {
 	db *gorm.DB
 }
 
-func NewSubscriptionStore(db *gorm.DB) *SubscriptionStore {
+func NewSubscriptionStore(db *gorm.DB) store.SubscriptionStore {
 	return &SubscriptionStore{db}
 }
 

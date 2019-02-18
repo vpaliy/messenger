@@ -10,10 +10,14 @@ type MessageStore struct {
 	db *gorm.DB
 }
 
-func NewStore(db *gorm.DB) *MessageStore {
+func NewMessageStore(db *gorm.DB) store.MessageStore {
 	return &MessageStore{
 		db: db,
 	}
+}
+
+func (s *MessageStore) Fetch(id string) (*model.Message, error) {
+	return nil, nil
 }
 
 func (s *MessageStore) GetForChannel(channel string, args ...store.Option) ([]*model.Message, error) {

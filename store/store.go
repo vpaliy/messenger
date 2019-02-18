@@ -28,7 +28,7 @@ type SubscriptionStore interface {
 	FetchAll(interface{}, ...Option) ([]*model.Subscription, error)
 	Create(*model.Channel, *model.Subscription) error
 	Update(*model.Subscription) error
-	Delete(*model.Subscription) error
+	Delete(*model.Channel, *model.Subscription) error
 }
 
 type ChannelStore interface {

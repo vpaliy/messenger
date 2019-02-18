@@ -8,6 +8,7 @@
 *.db
 telex
 to-do
+telex-cli
 
 # Test binary, build with `go test -c`
 *.test
