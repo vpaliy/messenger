@@ -37,6 +37,37 @@ type markChannelRequest struct {
 	Timestamp utils.Timestamp `json:"ts" validate:"required"`
 }
 
+// TODO: get rid of all these methods here, generalize it
+func (r *createChannelRequest) bind(c echo.Context) error {
+	if err := c.Bind(r); err != nil {
+		return err
+	}
+	if err := c.Validate(r); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *channelSearchRequest) bind(c echo.Context) error {
+	if err := c.Bind(r); err != nil {
+		return err
+	}
+	if err := c.Validate(r); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *updateChannelRequest) bind(c echo.Context) error {
+	if err := c.Bind(r); err != nil {
+		return err
+	}
+	if err := c.Validate(r); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *channelAction) bind(c echo.Context) error {
 	if err := c.Bind(r); err != nil {
 		return err
@@ -47,13 +78,29 @@ func (r *channelAction) bind(c echo.Context) error {
 	return nil
 }
 
-func (r *updateChannelRequest) bind(c echo.Context, channel *model.Channel) error {
+func (r *markChannelRequest) bind(c echo.Context) error {
 	if err := c.Bind(r); err != nil {
 		return err
 	}
 	if err := c.Validate(r); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (c *createChannelRequest) toChannel(id uint) *model.Channel {
+	return &model.Channel{
+		CreatorID:   id,
+		Name:        c.Channel,
+		Tags:        model.CreateTags(c.Tags),
+		Image:       c.Image,
+		Description: c.Description,
+		Type:        c.Type,
+		Private:     c.Private,
+	}
+}
+
+func (r *updateChannelRequest) update(channel *model.Channel) {
 	if len(r.Tags) > 0 {
 		channel.Tags = model.CreateTags(r.Tags)
 	}
@@ -65,29 +112,5 @@ func (r *updateChannelRequest) bind(c echo.Context, channel *model.Channel) erro
 	}
 	if r.Private != nil {
 		channel.Private = *r.Private
-	}
-	return nil
-}
-
-func (r *createChannelRequest) bind(c echo.Context) (*model.Channel, error) {
-	if err := c.Bind(r); err != nil {
-		return nil, err
-	}
-	if err := c.Validate(r); err != nil {
-		return nil, err
-	}
-	channel := r.toChannel(utils.GetUserId(c))
-	return channel, nil
-}
-
-func (c *createChannelRequest) toChannel(id uint) *model.Channel {
-	return &model.Channel{
-		Name:        c.Channel,
-		CreatorID:   id,
-		Tags:        model.CreateTags(c.Tags),
-		Image:       c.Image,
-		Description: c.Description,
-		Type:        c.Type,
-		Private:     c.Private,
 	}
 }

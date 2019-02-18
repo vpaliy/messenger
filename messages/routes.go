@@ -32,7 +32,7 @@ func (h *Handler) GetMessages(c echo.Context) error {
 		return err
 	}
 	// check if the user is subscribed to the channel
-	if !channel.HasUser(utils.GetUserId(c)) {
+	if !channel.HasUser(utils.GetUser(c).ID) {
 		return c.JSON(http.StatusForbidden, utils.Forbidden())
 	}
 	// get all the messages
@@ -59,12 +59,13 @@ func (h *Handler) PostMessage(c echo.Context) error {
 		return err
 	}
 	// check if the user is subscribed to the chat
-	if !channel.HasUser(utils.GetUserId(c)) {
+	currentUser := utils.GetUser(c)
+	if !channel.HasUser(currentUser.ID) {
 		return c.JSON(http.StatusForbidden, utils.Forbidden())
 	}
 	// submit a message
 	message := request.createMessage(
-		utils.GetUserId(c), channel.ID,
+		currentUser.ID, channel.ID,
 	)
 	// create message and send an error message if fails
 	if err := h.messageStore.Create(message); err != nil {
@@ -113,7 +114,7 @@ func (h *Handler) DeleteMessage(c echo.Context) error {
 	}
 	// only the author can delete the message
 	// TODO: allow admins to delete the message too
-	if message.UserID != utils.GetUserId(c) {
+	if message.UserID != utils.GetUser(c).ID {
 		return c.JSON(http.StatusForbidden, utils.Forbidden())
 	}
 	// delete it
@@ -124,7 +125,7 @@ func (h *Handler) DeleteMessage(c echo.Context) error {
 }
 
 func (h *Handler) EditMessage(c echo.Context) error {
-	request := new(updateMessageRequest)
+	request := new(editMessageRequest)
 	if err := request.bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
@@ -139,7 +140,7 @@ func (h *Handler) EditMessage(c echo.Context) error {
 	}
 	// only the author can edit the message
 	// TODO: allow other people to edit the message too
-	if message.UserID != utils.GetUserId(c) {
+	if message.UserID != utils.GetUser(c).ID {
 		return c.JSON(http.StatusForbidden, utils.Forbidden())
 	}
 	// update the message

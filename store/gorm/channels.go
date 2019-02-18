@@ -130,8 +130,20 @@ func (s *ChannelStore) Update(c *model.Channel) error {
 }
 
 func (s *ChannelStore) GetForMember(id string, args ...store.Option) ([]*model.Channel, error) {
-	// TODO:
-	return nil, nil
+	// TODO: join tables
+	var ms []*model.Channel
+	options := store.NewOptions(args...)
+	tx := s.db.Where("creator_id = ?", user).Limit(options.Limit).
+		Preload("Tags").
+		Preload("Creator").
+		Preload("Members")
+	if tr := options.TimeRange(); tr != nil {
+		tx.Where("created_at BETWEEN ? AND ?", tr.From, tr.To)
+	}
+	if err := tx.Find(&ms).Error; err != nil {
+		return nil, err
+	}
+	return ms, nil
 }
 
 func (s *ChannelStore) Delete(u *model.Channel) error {

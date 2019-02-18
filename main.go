@@ -31,7 +31,7 @@ func registerRTM(e *echo.Echo) {
 
 func main() {
 	e := router.New()
-	api := e.Group("/api")
+	//api := e.Group("/api")
 
 	database, err := db.New(db.CreateTestConfig())
 	if err != nil {

@@ -27,7 +27,7 @@ func (s *SubscriptionStore) Fetch(id string) (*model.Subscription, error) {
 	return &m, nil
 }
 
-func (s *SubscriptionStore) FetchAll(user string, args ...store.Option) ([]*model.Subscription, error) {
+func (s *SubscriptionStore) FetchAll(user interface{}, args ...store.Option) ([]*model.Subscription, error) {
 	var ms []*model.Subscription
 	options := store.NewOptions(args...)
 	tx := s.db.Where("user_id = ?", user).Limit(options.Limit)

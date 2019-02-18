@@ -26,7 +26,7 @@ type fetchMessagesRequest struct {
 	Channel string          `json:"channel" validate:"required"`
 	Latest  utils.Timestamp `json:"latest"`
 	Oldest  utils.Timestamp `json:"oldest"`
-	Limit   int             `json:"limit"`
+	Limit   int16           `json:"limit"`
 }
 
 type editMessageRequest struct {
@@ -40,7 +40,7 @@ type searchMessagesRequest struct {
 	Query   string          `json:"query" validate:"required"`
 	Latest  utils.Timestamp `json:"latest"`
 	Oldest  utils.Timestamp `json:"oldest"`
-	Limit   int             `json:"limit"`
+	Limit   int16           `json:"limit"`
 }
 
 type deleteMessageRequest struct {

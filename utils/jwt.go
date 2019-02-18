@@ -8,12 +8,17 @@ import (
 	"time"
 )
 
-type JWTClaims struct {
-	ID       uint   `json:"ID"`
+type JWTUser struct {
+	ID       uint   `json:"id"`
 	Username string `json:"username"`
+}
+
+type JWTClaims struct {
+	User *JWTUser `json:"user"`
 	jwt.StandardClaims
 }
 
+// TODO: fix the secret key here
 func JWTMiddleware() echo.MiddlewareFunc {
 	config := middleware.JWTConfig{
 		Claims:     &JWTClaims{},
@@ -22,21 +27,18 @@ func JWTMiddleware() echo.MiddlewareFunc {
 	return middleware.JWTWithConfig(config)
 }
 
-func GetJWTClaims(c echo.Context) *JWTClaims {
-	token := c.Get("user").(*jwt.Token)
-	return token.Claims.(*JWTClaims)
-}
-
-func GetUserId(c echo.Context) uint {
+func GetUser(c echo.Context) *JWTUser {
 	token := c.Get("user").(*jwt.Token)
 	claims := token.Claims.(*JWTClaims)
-	return claims.ID
+	return claims.User
 }
 
 func CreateJWT(u *model.User) string {
 	claims := &JWTClaims{
-		u.ID,
-		u.Username,
+		&JWTUser{
+			ID:       u.ID,
+			Username: u.Username,
+		},
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
 		},
