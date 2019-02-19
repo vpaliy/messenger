@@ -7,15 +7,15 @@ package di
 
 import (
 	"github.com/jinzhu/gorm"
-	"github.com/vpaliy/telex/channels"
-	"github.com/vpaliy/telex/messages"
+	"github.com/vpaliy/telex/api/channels"
+	"github.com/vpaliy/telex/api/messages"
+	"github.com/vpaliy/telex/api/users"
 	"github.com/vpaliy/telex/rtm"
 	gorm2 "github.com/vpaliy/telex/store/gorm"
-	"github.com/vpaliy/telex/users"
 )
 
 import (
-	_ "github.com/vpaliy/telex/handler"
+	_ "github.com/vpaliy/telex/api"
 )
 
 // Injectors from di.go:

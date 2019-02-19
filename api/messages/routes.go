@@ -22,7 +22,7 @@ func (h *Handler) fetchChannel(ch string, c echo.Context) (*model.Channel, error
 
 func (h *Handler) GetMessages(c echo.Context) error {
 	request := new(fetchMessagesRequest)
-	if err := request.bind(c); err != nil {
+	if err := request.Bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
 	// fetch the channel by name or ID
@@ -50,7 +50,7 @@ func (h *Handler) GetMessages(c echo.Context) error {
 
 func (h *Handler) PostMessage(c echo.Context) error {
 	request := new(createMessageRequest)
-	if err := request.bind(c); err != nil {
+	if err := request.Bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
 	channel, err := h.fetchChannel(request.Channel, c)
@@ -76,7 +76,7 @@ func (h *Handler) PostMessage(c echo.Context) error {
 
 func (h *Handler) Search(c echo.Context) error {
 	request := new(searchMessagesRequest)
-	if err := request.bind(c); err != nil {
+	if err := request.Bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
 	channel, err := h.fetchChannel(request.Channel, c)
@@ -100,7 +100,7 @@ func (h *Handler) Search(c echo.Context) error {
 
 func (h *Handler) DeleteMessage(c echo.Context) error {
 	request := new(deleteMessageRequest)
-	if err := request.bind(c); err != nil {
+	if err := request.Bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
 	message, err := h.messageStore.Fetch(request.ID)
@@ -126,7 +126,7 @@ func (h *Handler) DeleteMessage(c echo.Context) error {
 
 func (h *Handler) EditMessage(c echo.Context) error {
 	request := new(editMessageRequest)
-	if err := request.bind(c); err != nil {
+	if err := request.Bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
 	message, err := h.messageStore.Fetch(request.ID)

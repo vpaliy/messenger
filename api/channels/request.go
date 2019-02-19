@@ -1,12 +1,15 @@
 package channels
 
 import (
-	"github.com/labstack/echo"
+	"github.com/vpaliy/telex/api"
 	"github.com/vpaliy/telex/model"
 	"github.com/vpaliy/telex/utils"
 )
 
+type Binder struct{}
+
 type createChannelRequest struct {
+	api.Binder
 	Channel     string   `json:"channel" validate:"required"`
 	Tags        []string `json:"tags"`
 	Image       string   `json:"image"`
@@ -16,6 +19,7 @@ type createChannelRequest struct {
 }
 
 type updateChannelRequest struct {
+	api.Binder
 	Channel     string   `json:"channel" validate:"required"`
 	Tags        []string `json:"tags"`
 	Image       *string  `json:"image"`
@@ -24,10 +28,12 @@ type updateChannelRequest struct {
 }
 
 type channelAction struct {
+	api.Binder
 	Channel string `json:"channel" validate:"required"`
 }
 
 type channelSearchRequest struct {
+	api.Binder
 	Query  string          `json:"query" validate:"required"`
 	Tags   string          `json:"tags"`
 	Latest utils.Timestamp `json:"latest"`
@@ -36,59 +42,9 @@ type channelSearchRequest struct {
 }
 
 type markChannelRequest struct {
+	api.Binder
 	Channel   string          `json:"channel" validate:"required"`
 	Timestamp utils.Timestamp `json:"ts" validate:"required"`
-}
-
-// TODO: get rid of all these methods here, generalize it
-func (r *createChannelRequest) bind(c echo.Context) error {
-	if err := c.Bind(r); err != nil {
-		return err
-	}
-	if err := c.Validate(r); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *channelSearchRequest) bind(c echo.Context) error {
-	if err := c.Bind(r); err != nil {
-		return err
-	}
-	if err := c.Validate(r); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *updateChannelRequest) bind(c echo.Context) error {
-	if err := c.Bind(r); err != nil {
-		return err
-	}
-	if err := c.Validate(r); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *channelAction) bind(c echo.Context) error {
-	if err := c.Bind(r); err != nil {
-		return err
-	}
-	if err := c.Validate(r); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *markChannelRequest) bind(c echo.Context) error {
-	if err := c.Bind(r); err != nil {
-		return err
-	}
-	if err := c.Validate(r); err != nil {
-		return err
-	}
-	return nil
 }
 
 func (c *createChannelRequest) toChannel(id uint) *model.Channel {

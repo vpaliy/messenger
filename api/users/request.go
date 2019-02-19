@@ -1,16 +1,18 @@
 package users
 
 import (
-	"github.com/labstack/echo"
+	"github.com/vpaliy/telex/api"
 	"github.com/vpaliy/telex/model"
 )
 
 type userLoginRequest struct {
+	api.Binder
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
 }
 
 type userRegisterRequest struct {
+	api.Binder
 	Username string `json:"username" validate:"required"`
 	Email    string `json:"email" validate:"required"`
 	Password string `json:"password" validate:"required"`
@@ -20,37 +22,8 @@ type userRegisterRequest struct {
 
 type forgotPasswordRequest struct {
 	// either a username or email
+	api.Binder
 	Identifier string `json:"identifier" validate:"required"`
-}
-
-func (r *forgotPasswordRequest) bind(c echo.Context) error {
-	if err := c.Bind(r); err != nil {
-		return err
-	}
-	if err := c.Validate(r); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *userLoginRequest) bind(c echo.Context) error {
-	if err := c.Bind(r); err != nil {
-		return err
-	}
-	if err := c.Validate(r); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *userRegisterRequest) bind(c echo.Context) error {
-	if err := c.Bind(r); err != nil {
-		return err
-	}
-	if err := c.Validate(r); err != nil {
-		return err
-	}
-	return nil
 }
 
 func (r *userRegisterRequest) toUser() *model.User {

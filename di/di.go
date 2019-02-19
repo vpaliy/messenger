@@ -5,12 +5,12 @@ package di
 import (
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
-	"github.com/vpaliy/telex/channels"
-	_ "github.com/vpaliy/telex/handler"
-	"github.com/vpaliy/telex/messages"
+	_ "github.com/vpaliy/telex/api"
+	"github.com/vpaliy/telex/api/channels"
+	"github.com/vpaliy/telex/api/messages"
+	"github.com/vpaliy/telex/api/users"
 	"github.com/vpaliy/telex/rtm"
 	store "github.com/vpaliy/telex/store/gorm"
-	"github.com/vpaliy/telex/users"
 )
 
 func NewRepository() *rtm.TestRepository {

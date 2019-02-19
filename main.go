@@ -2,14 +2,14 @@ package main
 
 import (
 	"github.com/labstack/echo"
+	"github.com/vpaliy/telex/api"
 	"github.com/vpaliy/telex/db"
 	"github.com/vpaliy/telex/di"
-	"github.com/vpaliy/telex/handler"
 	"github.com/vpaliy/telex/router"
 	"github.com/vpaliy/telex/rtm"
 )
 
-func registerHTTPHandlers(g *echo.Group, hs ...handler.Handler) {
+func registerHTTPHandlers(g *echo.Group, hs ...api.Handler) {
 	for _, handler := range hs {
 		handler.Register(g)
 	}

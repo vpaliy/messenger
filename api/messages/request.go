@@ -1,12 +1,13 @@
 package messages
 
 import (
-	"github.com/labstack/echo"
+	"github.com/vpaliy/telex/api"
 	"github.com/vpaliy/telex/model"
 	"github.com/vpaliy/telex/utils"
 )
 
 type attachment struct {
+	api.Binder
 	Title    string `json:"title"`
 	Text     string `json:"text"`
 	ImageURL string `json:"image_url"`
@@ -17,12 +18,14 @@ type attachment struct {
 }
 
 type createMessageRequest struct {
+	api.Binder
 	Channel     string       `json:"channel" validate:"required"`
 	Text        string       `json:"text"`
 	Attachments []attachment `json:"attachments"`
 }
 
 type fetchMessagesRequest struct {
+	api.Binder
 	Channel string          `json:"channel" validate:"required"`
 	Latest  utils.Timestamp `json:"latest"`
 	Oldest  utils.Timestamp `json:"oldest"`
@@ -30,12 +33,14 @@ type fetchMessagesRequest struct {
 }
 
 type editMessageRequest struct {
+	api.Binder
 	ID      string `json:"message_id" validate:"required"`
 	Channel string `json:"channel" validate:"required"`
 	Text    string `json:"text" validate:"required"`
 }
 
 type searchMessagesRequest struct {
+	api.Binder
 	Channel string          `json:"channel" validate:"required"`
 	Query   string          `json:"query" validate:"required"`
 	Latest  utils.Timestamp `json:"latest"`
@@ -44,57 +49,8 @@ type searchMessagesRequest struct {
 }
 
 type deleteMessageRequest struct {
+	api.Binder
 	ID string `json:"message_id" validate:"required"`
-}
-
-func (r *deleteMessageRequest) bind(c echo.Context) error {
-	if err := c.Bind(r); err != nil {
-		return err
-	}
-	if err := c.Validate(r); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *fetchMessagesRequest) bind(c echo.Context) error {
-	if err := c.Bind(r); err != nil {
-		return err
-	}
-	if err := c.Validate(r); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *createMessageRequest) bind(c echo.Context) error {
-	if err := c.Bind(r); err != nil {
-		return err
-	}
-	if err := c.Validate(r); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *editMessageRequest) bind(c echo.Context) error {
-	if err := c.Bind(r); err != nil {
-		return err
-	}
-	if err := c.Validate(r); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *searchMessagesRequest) bind(c echo.Context) error {
-	if err := c.Bind(r); err != nil {
-		return err
-	}
-	if err := c.Validate(r); err != nil {
-		return err
-	}
-	return nil
 }
 
 func (r *createMessageRequest) createMessage(channel, user uint) *model.Message {
