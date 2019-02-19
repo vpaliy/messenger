@@ -15,7 +15,7 @@ func NewSubscriptionStore(db *gorm.DB) store.SubscriptionStore {
 	return &SubscriptionStore{db}
 }
 
-func (s *SubscriptionStore) Fetch(id string) (*model.Subscription, error) {
+func (s *SubscriptionStore) Fetch(id store.Arg) (*model.Subscription, error) {
 	var m model.Subscription
 	// TODO: add searching by channel name as well
 	err := s.db.Where("id = ?", id).Find(&m).Error
@@ -28,7 +28,7 @@ func (s *SubscriptionStore) Fetch(id string) (*model.Subscription, error) {
 	return &m, nil
 }
 
-func (s *SubscriptionStore) FetchAll(user interface{}, args ...store.Option) ([]*model.Subscription, error) {
+func (s *SubscriptionStore) FetchAll(user store.Arg, args ...store.Option) ([]*model.Subscription, error) {
 	var ss []*model.Subscription
 	options := store.NewOptions(args...)
 	tx := s.db.Where("user_id = ?", user).Limit(options.Limit)

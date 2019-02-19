@@ -16,7 +16,7 @@ func NewUserStore(db *gorm.DB) store.UserStore {
 	}
 }
 
-func (s *UserStore) Fetch(user string) (*model.User, error) {
+func (s *UserStore) Fetch(user store.Arg) (*model.User, error) {
 	var m model.User
 	err := s.db.Where("id = ?", user).Or("username = ?", user).Find(&m).Error
 	if err != nil {
@@ -28,11 +28,11 @@ func (s *UserStore) Fetch(user string) (*model.User, error) {
 	return &m, nil
 }
 
-func (s *UserStore) Search(query string, args ...store.Option) ([]*model.User, error) {
+func (s *UserStore) Search(query store.Arg, args ...store.Option) ([]*model.User, error) {
 	var ms []*model.User
 	options := store.NewOptions(args...)
 	// find users whose name starts with the given parameter
-	tx := s.db.Where("username LIKE ?", query+"%").Limit(options.Limit)
+	tx := s.db.Where("username LIKE ?", multipleMatch(query)).Limit(options.Limit)
 	if tr := options.TimeRange(); tr != nil {
 		tx.Where("created_at BETWEEN ? AND ?", tr.From, tr.To)
 	}

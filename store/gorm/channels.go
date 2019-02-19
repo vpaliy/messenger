@@ -26,7 +26,7 @@ func filterTags(tags []model.Tag) []model.Tag {
 	return result
 }
 
-func (s *ChannelStore) Fetch(id string) (*model.Channel, error) {
+func (s *ChannelStore) Fetch(id store.Arg) (*model.Channel, error) {
 	var m model.Channel
 	err := s.db.Where("id = ?", id).Or("name = ?", id).
 		Preload("Tags").
@@ -42,11 +42,11 @@ func (s *ChannelStore) Fetch(id string) (*model.Channel, error) {
 	return &m, nil
 }
 
-// fetch channels based on their
-func (s *ChannelStore) Search(query string, args ...store.Option) ([]*model.Channel, error) {
+func (s *ChannelStore) Search(query store.Arg, args ...store.Option) ([]*model.Channel, error) {
 	var ms []*model.Channel
 	options := store.NewOptions(args...)
-	tx := s.db.Where("id = ?", query).Or("name = ?", query).Limit(options.Limit).
+	tx := s.db.Where("id = ?", query).Or("name LIKE ?", multipleMatch(query)).
+		Limit(options.Limit).
 		Preload("Tags").
 		Preload("Creator").
 		Preload("Members")
@@ -56,10 +56,11 @@ func (s *ChannelStore) Search(query string, args ...store.Option) ([]*model.Chan
 	if err := tx.Find(&ms).Error; err != nil {
 		return nil, err
 	}
+
 	return ms, nil
 }
 
-func (s *ChannelStore) GetCreatedBy(user string, args ...store.Option) ([]*model.Channel, error) {
+func (s *ChannelStore) GetCreatedBy(user store.Arg, args ...store.Option) ([]*model.Channel, error) {
 	var ms []*model.Channel
 	options := store.NewOptions(args...)
 	tx := s.db.Where("creator_id = ?", user).Limit(options.Limit).
@@ -129,14 +130,15 @@ func (s *ChannelStore) Update(c *model.Channel) error {
 	return tx.Commit().Error
 }
 
-func (s *ChannelStore) GetForMember(id string, args ...store.Option) ([]*model.Channel, error) {
-	// TODO: join tables
+func (s *ChannelStore) GetForMember(id store.Arg, args ...store.Option) ([]*model.Channel, error) {
 	var ms []*model.Channel
 	options := store.NewOptions(args...)
-	tx := s.db.Where("creator_id = ?", id).Limit(options.Limit).
+	tx := s.db.Table("subscriptions").Select("channels.*").
+		Joins("JOIN channels ON subscriptions.channel_id = channels.id AND subscriptions.user_id = ?", id).
 		Preload("Tags").
 		Preload("Creator").
-		Preload("Members")
+		Preload("Members").
+		Limit(options.Limit)
 	if tr := options.TimeRange(); tr != nil {
 		tx.Where("created_at BETWEEN ? AND ?", tr.From, tr.To)
 	}

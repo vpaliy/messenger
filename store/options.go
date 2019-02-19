@@ -43,7 +43,11 @@ func To(t time.Time) Option {
 
 func Limit(limit int16) Option {
 	return func(args *Options) {
-		args.Limit = limit
+		if limit <= 0 {
+			args.Limit = -1
+		} else {
+			args.Limit = limit
+		}
 	}
 }
 

@@ -71,7 +71,7 @@ func (h *Handler) FetchChannels(c echo.Context) error {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
 	// fetch all channels that user has
-	channels, err := h.channelStore.GetForMember(user.Username)
+	channels, err := h.channelStore.GetForMember(user.ID)
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
@@ -117,6 +117,7 @@ func (h *Handler) SearchChannels(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, utils.NewError(err))
 	}
+
 	return c.JSON(http.StatusOK, newChannelsResponse(channels))
 }
 

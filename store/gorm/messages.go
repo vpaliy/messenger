@@ -16,11 +16,11 @@ func NewMessageStore(db *gorm.DB) store.MessageStore {
 	}
 }
 
-func (s *MessageStore) Fetch(id string) (*model.Message, error) {
+func (s *MessageStore) Fetch(id store.Arg) (*model.Message, error) {
 	return nil, nil
 }
 
-func (s *MessageStore) GetForChannel(channel string, args ...store.Option) ([]*model.Message, error) {
+func (s *MessageStore) GetForChannel(channel store.Arg, args ...store.Option) ([]*model.Message, error) {
 	var ms []*model.Message
 	options := store.NewOptions(args...)
 	tx := s.db.Where("channel_id = ?", channel).Limit(options.Limit).
@@ -35,11 +35,11 @@ func (s *MessageStore) GetForChannel(channel string, args ...store.Option) ([]*m
 	return ms, nil
 }
 
-func (s *MessageStore) Search(channel string, query string, args ...store.Option) ([]*model.Message, error) {
+func (s *MessageStore) Search(channel, query store.Arg, args ...store.Option) ([]*model.Message, error) {
 	var ms []*model.Message
 	options := store.NewOptions(args...)
 	tx := s.db.Where("channel_id = ?", channel).
-		Where("text LIKE ?", query+"%").
+		Where("text LIKE ?", multipleMatch(query)).
 		Limit(options.Limit).
 		Preload("Attachments").
 		Preload("User")
@@ -52,7 +52,7 @@ func (s *MessageStore) Search(channel string, query string, args ...store.Option
 	return ms, nil
 }
 
-func (s *MessageStore) GetForUser(user string, args ...store.Option) ([]*model.Message, error) {
+func (s *MessageStore) GetForUser(user store.Arg, args ...store.Option) ([]*model.Message, error) {
 	var ms []*model.Message
 	options := store.NewOptions(args...)
 	tx := s.db.Where("user_id = ?", user).Limit(options.Limit).
