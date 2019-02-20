@@ -6,7 +6,7 @@ import (
 	"github.com/vpaliy/telex/utils"
 )
 
-type attachment struct {
+type Attachment struct {
 	api.Binder
 	Title    string `json:"title"`
 	Text     string `json:"text"`
@@ -17,14 +17,14 @@ type attachment struct {
 	Color    string `json:"color"`
 }
 
-type createMessageRequest struct {
+type CreateMessageRequest struct {
 	api.Binder
 	Channel     string       `json:"channel" validate:"required"`
 	Text        string       `json:"text"`
-	Attachments []attachment `json:"attachments"`
+	Attachments []Attachment `json:"attachments"`
 }
 
-type fetchMessagesRequest struct {
+type FetchMessagesRequest struct {
 	api.Binder
 	Channel string          `json:"channel" validate:"required"`
 	Latest  utils.Timestamp `json:"latest"`
@@ -32,14 +32,14 @@ type fetchMessagesRequest struct {
 	Limit   int16           `json:"limit"`
 }
 
-type editMessageRequest struct {
+type EditMessageRequest struct {
 	api.Binder
 	ID      string `json:"message_id" validate:"required"`
 	Channel string `json:"channel" validate:"required"`
 	Text    string `json:"text" validate:"required"`
 }
 
-type searchMessagesRequest struct {
+type SearchMessagesRequest struct {
 	api.Binder
 	Channel string          `json:"channel" validate:"required"`
 	Query   string          `json:"query" validate:"required"`
@@ -48,12 +48,12 @@ type searchMessagesRequest struct {
 	Limit   int16           `json:"limit"`
 }
 
-type deleteMessageRequest struct {
+type DeleteMessageRequest struct {
 	api.Binder
 	ID string `json:"message_id" validate:"required"`
 }
 
-func (r *createMessageRequest) createMessage(channel, user uint) *model.Message {
+func (r *CreateMessageRequest) ToMessage(channel, user uint) *model.Message {
 	message := new(model.Message)
 	message.ChannelID = channel
 	message.UserID = user

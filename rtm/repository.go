@@ -5,23 +5,23 @@ import (
 	"github.com/vpaliy/telex/utils"
 )
 
-type ChannelRequest struct {
-	Channel string
-	Token   string
-}
-
-type MessageRequest struct {
-	MessageAction
-	Token string
-}
-
 type Content interface{}
+
+type TokenizedChannelRequest struct {
+	Token string
+	ChannelRequest
+}
+
+type TokenizedPostRequest struct {
+	Token string
+	CreateMessageRequest
+}
 
 type Repository interface {
 	FetchChannel(string) (*Channel, error)
-	JoinChannel(*ChannelRequest) (Content, error)
-	LeaveChannel(*ChannelRequest) (Content, error)
-	PostMessage(*MessageRequest) (Content, error)
+	JoinChannel(*TokenizedChannelRequest) (Content, error)
+	LeaveChannel(*TokenizedChannelRequest) (Content, error)
+	PostMessage(*TokenizedPostRequest) (Content, error)
 }
 
 type repository struct {
@@ -29,10 +29,6 @@ type repository struct {
 	messageStore      store.MessageStore
 	subscriptionStore store.MessageStore
 	channelStore      store.channelStore
-}
-
-func (a *MessageAction) CreateMessage(user, channel uint) *model.Message {
-	return nil
 }
 
 func (r *repository) FetchChannel(ch string) (*Channel, error) {
@@ -44,7 +40,7 @@ func (r *repository) FetchChannel(ch string) (*Channel, error) {
 	return NewChannel(channel.Name), nil
 }
 
-func (r *repository) PostMessage(request *MessageRequest) (Content, error) {
+func (r *repository) PostMessage(request *TokenizedPostRequest) (Content, error) {
 	channel, err := r.channelStore.Fetch(request.Channel)
 	// if there is an error
 	if channel == nil || err != nil {
@@ -57,7 +53,7 @@ func (r *repository) PostMessage(request *MessageRequest) (Content, error) {
 		return nil, nil
 	}
 	// submit a message
-	message := request.CreateMessage(
+	message := request.ToMessage(
 		currentUser.ID, channel.ID,
 	)
 	// create message and send an error message if fails
@@ -68,7 +64,7 @@ func (r *repository) PostMessage(request *MessageRequest) (Content, error) {
 	return message, nil
 }
 
-func (r *repository) JoinChannel(request *ChannelRequest) (Content, error) {
+func (r *repository) JoinChannel(request *TokenizedChannelRequest) (Content, error) {
 	channel, err := r.channelStore.Fetch(request.Channel)
 	// notify about the error
 	if channel == nil || err != nil {
@@ -85,6 +81,6 @@ func (r *repository) JoinChannel(request *ChannelRequest) (Content, error) {
 	return subscription, nil
 }
 
-func (r *repository) LeaveChannel(request *ChannelRequest) (Content, error) {
+func (r *repository) LeaveChannel(request *TokenizedChannelRequest) (Content, error) {
 	return nil, nil
 }

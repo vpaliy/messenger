@@ -15,7 +15,6 @@ type Client struct {
 	mutex         sync.Mutex
 	send          chan interface{}
 	manager       ChannelManager
-	handler       EventHandler
 	close         chan struct{}
 }
 
@@ -56,17 +55,16 @@ func (s *Client) Unsubscribe(channel string) {
 }
 
 func (c *Client) HandleMessage(raw []byte) {
-	request := new(ActionRequest)
-	if err := json.Unmarshal(raw, request); err != nil {
+	request := new(WSEvent)
+	if err := request.Unmarshal(raw); err != nil {
 		log.Println("client.HandleMessage:", err)
 		return
 	}
-	log.Println("client.HandleMessage:", request)
 	switch request.Event {
 	case Join, Leave:
-		action, err := new(JoinAction).Decode(request)
-		if err != nil {
-			log.Println("client.HandleMessage:", err)
+		var action *api.ChannelRequest
+		if err := request.DecodeAction(action); err != nil {
+			// TODO: send an error message
 			return
 		}
 		if request.Event == Join {
@@ -75,36 +73,40 @@ func (c *Client) HandleMessage(raw []byte) {
 			go c.Leave(action)
 		}
 	case Hello:
-		action, err := new(HelloAction).Decode(request)
-		if err != nil {
-			log.Println("client.HandleMessage:", err)
+		var action *ChannelRequest
+		if err := request.DecodeAction(action); err != nil {
+			// TODO: send an error message
 			return
 		}
 		go c.Hello(action)
 	case Send:
-		action, err := new(MessageAction).Decode(request)
-		if err != nil {
-			log.Println("client.HandleMessage:", err)
+		var action *CreateMessageRequest
+		if err := request.DecodeAction(action); err != nil {
+			// TODO: send an error message
 			return
 		}
 		go c.Send(action)
 	case Typing:
-		action, err := new(TypingAction).Decode(request)
-		if err != nil {
-			log.Println("client.HandleMessage:", err)
+		var action *ChannelRequest
+		if err := request.DecodeAction(action); err != nil {
+			// TODO: send an error message
 			return
 		}
 		go c.Typing(action)
 	case Load:
-		action, err := new(LoadRequest).Decode(request)
-		if err != nil {
-			log.Println("client.HandleMessage:", err)
+		var action *FetchMessagesRequest
+		if err := request.DecodeAction(action); err != nil {
+			// TODO: send an error message
 			return
 		}
 		go c.Load(action)
 	default:
 		break
 	}
+}
+
+func (c *Client) JSONError(err error) {
+	// TODO: implement
 }
 
 func (c *Client) JSON(message *ResponseMessage) {
@@ -121,32 +123,30 @@ func (c *Client) JSON(message *ResponseMessage) {
 	}
 }
 
-func (c *Client) Join(action *JoinAction) {
-	c.manager.Join(action.Channel, c)
+func (c *Client) Join(req *ChannelRequest) {
+	c.manager.Join(req.Channel, c)
 }
 
-func (c *Client) Leave(action *JoinAction) {
-	c.manager.Leave(action.Channel, c)
+func (c *Client) Leave(req *ChannelRequest) {
+	c.manager.Leave(req.Channel, c)
 }
 
-func (c *Client) Send(action *MessageAction) {
-	if err := c.manager.Post(action); err != nil {
-		// TODO: send an error message here
-		return
-	}
-	if sub, ok := c.subscriptions[action.Channel]; ok {
-		response := &ResponseMessage{Send, action.Content}
+func (c *Client) Send(req *CreateMessageRequest) {
+	if sub, ok := c.subscriptions[req.Channel]; ok {
+		response, err := c.dispatcher.Post(req, c)
+		if err != nil {
+			return
+		}
 		sub.broadcast <- response
-		return
 	}
 	// TODO: handle the case when the user is not subscribed to a chat
 }
 
-func (c *Client) Typing(action *TypingAction) {
+func (c *Client) Typing(action *ChannelRequest) {
 	// TODO: handle this
 }
 
-func (c *Client) Load(action *LoadRequest) {
+func (c *Client) Load(action *FetchMessagesRequest) {
 	// TODO: handle this
 }
 

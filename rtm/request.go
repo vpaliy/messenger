@@ -2,6 +2,8 @@ package rtm
 
 import (
 	"github.com/mitchellh/mapstructure"
+	"github.com/vpaliy/telex/api/channels"
+	"github.com/vpaliy/telex/api/messages"
 )
 
 const (
@@ -14,71 +16,33 @@ const (
 	Goodbye = "goodbye"
 )
 
-type ActionRequest struct {
-	Event  string      `json:"event"`
-	Action interface{} `json:"action"`
+type (
+	CreateMessageRequest messages.CreateMessageRequest
+	FetchMessagesRequest messages.FetchMessagesRequest
+	EditMessageRequest   messages.EditMessageRequest
+	ChannelRequest       channels.ChannelRequest
+)
+
+type WSEvent struct {
+	Event   string      `json:"event"`
+	Request interface{} `json:"request"`
 }
 
-type LoadRequest struct {
-	From    string `json:"id"`
-	Channel string `json:"channel"`
-	Limit   int    `json:"limit,omitempty"`
-}
-
-type JoinAction struct {
-	From    string                 `json:"id"`
-	Channel string                 `json:"channel"`
-	Meta    map[string]interface{} `json:"meta"`
-}
-
-type MessageAction struct {
-	From    string                 `json:"id"`
-	Channel string                 `json:"channel"`
-	Meta    map[string]interface{} `json:"meta"`
-	Content interface{}            `json:"content"`
-}
-
-type HelloAction struct {
-	From      string `json:"id"`
+type HelloRequest struct {
 	UserAgent string `json:"ua"`
 	Version   string `json:"version"`
 	DeviceId  string `json:"dev"`
 	Platform  string `json:"platform"`
 }
 
-type TypingAction struct {
-	From    string `json:"id"`
+type TypingRequest struct {
 	Channel string `json:"channel"`
 }
 
-func (a *ActionRequest) DecodeAction() (interface{}, error) {
-	var value interface{}
-	err := mapstructure.Decode(a.Action, value)
-	return value, err
+func (event *WSEvent) Unmarshal(raw []byte) error {
+	return json.Unmarshal(raw, event)
 }
 
-// TODO: find a better way to do this
-func (a *JoinAction) Decode(action *ActionRequest) (*JoinAction, error) {
-	err := mapstructure.Decode(action.Action, a)
-	return a, err
-}
-
-func (a *MessageAction) Decode(action *ActionRequest) (*MessageAction, error) {
-	err := mapstructure.Decode(action.Action, a)
-	return a, err
-}
-
-func (a *HelloAction) Decode(action *ActionRequest) (*HelloAction, error) {
-	err := mapstructure.Decode(action.Action, a)
-	return a, err
-}
-
-func (a *TypingAction) Decode(action *ActionRequest) (*TypingAction, error) {
-	err := mapstructure.Decode(action.Action, a)
-	return a, err
-}
-
-func (a *LoadRequest) Decode(action *ActionRequest) (*LoadRequest, error) {
-	err := mapstructure.Decode(action.Action, a)
-	return a, err
+func (event *WSEvent) DecodeAction(action interface{}) error {
+	return mapstructure.Decode(event.Action, action)
 }

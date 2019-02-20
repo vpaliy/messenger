@@ -5,59 +5,83 @@ import (
 	"sync"
 )
 
-type clientEvent struct {
+type bundle struct {
 	client  *Client
 	channel string
 }
 
-type ChannelManager interface {
+type Dispatcher interface {
 	Join(string, *Client)
 	Leave(string, *Client)
+	Post(CreateMessageRequest, *Client) (Content, error)
 	Run()
 }
 
-type channelManager struct {
+type dispatcher struct {
 	repository Repository
 	channels   sync.Map
-	join       chan clientEvent
-	leave      chan clientEvent
+	mutex      sync.Mutex
+	join       chan bundle
+	leave      chan bundle
 }
 
-func (cm *channelManager) getChannel(channel string) (*Channel, error) {
-	if value, ok := cm.channels.Load(channel); ok {
+func (d *dispatcher) fetchHub(id string) (*Hub, error) {
+	if value, ok := d.channels.Load(id); ok {
 		return value.(*Channel), nil
 	}
-	value, err := cm.repository.FetchChannel(channel)
+	value, err := d.repository.FetchChannel(id)
 	if err != nil {
-		cm.channels.Store(channel, value)
+		return nil, err
 	}
-	return value, err
+	d.channels.Store(id, value)
+	return value, nil
 }
 
-func (cm *channelManager) Join(channel string, client *Client) {
-	cm.join <- clientEvent{client, channel}
+func (d *dispatcher) Post(req *CreateMessageRequest, c *Client) (Content, error) {
+	tr := TokenizedPostRequest{c.Token, req}
+	return d.manager.PostMessage(&tr)
 }
 
-func (cm *channelManager) Leave(channel string, client *Client) {
-	cm.leave <- clientEvent{client, channel}
+func (d *dispatcher) Join(req *ChannelRequest, c *Client) {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+	hub, err := d.fetchHub(req.Channel)
+	if err != nil {
+		client.JSONError(err)
+	}
+	if !hub.HasClient(c) {
+		d.repository.Join(&TokenizedChannelRequest{c.Token, req})
+	}
+	//d.join <- bundle{client, channel}
 }
 
-func (cm *channelManager) Run() {
+func (d *dispatcher) Leave(channel string, client *Client) {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+	channel, err := d.fetchChannel(req.Channel)
+	if err != nil {
+		client.JSONError(err)
+	}
+	if !channel.HasClient(c) {
+		d.repository.Join(&TokenizedChannelRequest{c.Token, req})
+	}
+	d.join <- bundle{client, channel}
+}
+
+func (d *dispatcher) Run() {
 	for {
 		select {
-		case event := <-cm.join:
-			channel, err := cm.getChannel(event.channel)
+		case event := <-d.join:
+			channel, err := d.fetchChannel(event.channel)
 			if err != nil {
-				log.Println("manager.Run:", err)
-				// TODO: notify the client
+				event.client.JSONError(err)
 				continue
 			}
 			channel.register <- event.client
-		case event := <-cm.leave:
-			channel, err := cm.getChannel(event.channel)
+		case event := <-d.leave:
+			channel, err := d.fetchChannel(event.channel)
 			if err != nil {
-				log.Println("manager.Run:", err)
-				// TODO: notify the client
+				event.client.JSONError(err)
 				continue
 			}
 			channel.unregister <- event.client
@@ -65,10 +89,10 @@ func (cm *channelManager) Run() {
 	}
 }
 
-func NewChannelManager(repository Repository) ChannelManager {
-	return &channelManager{
+func NewDispatcher(repository Repository) Dispatcher {
+	return &dispatcher{
 		repository: repository,
-		join:       make(chan clientEvent),
-		leave:      make(chan clientEvent),
+		join:       make(chan bundle),
+		leave:      make(chan bundle),
 	}
 }

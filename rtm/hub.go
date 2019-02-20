@@ -1,28 +1,39 @@
 package rtm
 
-import "log"
+import (
+	"log"
+	"sync"
+)
 
-type Channel struct {
+type Hub struct {
 	name        string
 	subscribers map[*Client]bool
 	broadcast   chan *ResponseMessage
 	register    chan *Client
 	unregister  chan *Client
+	mutex       sync.Mutex
 }
 
-func NewChannel(name string) *Channel {
-	channel := Channel{
+func NewHub(name string) *Hub {
+	hub := Hub{
 		name:        name,
 		subscribers: make(map[*Client]bool),
 		broadcast:   make(chan *ResponseMessage),
 		register:    make(chan *Client),
 		unregister:  make(chan *Client),
 	}
-	go channel.Run()
-	return &channel
+	go hub.Run()
+	return &hub
 }
 
-func (c *Channel) Run() {
+func (h *Hub) HasClient(c *Client) bool {
+	h.mutex.Lock()
+	defer h.mutex.Unlock()
+	_, ok := h.subscribers[c]
+	return ok
+}
+
+func (c *Hub) Run() {
 	for {
 		select {
 		case client := <-c.register:
@@ -41,7 +52,7 @@ func (c *Channel) Run() {
 		case message := <-c.broadcast:
 			// TODO: handle this better
 			// TODO: put this change in the database
-			log.Println("channel.Run: broadcasting")
+			log.Println("hub.Run: broadcasting")
 			for sub, connected := range c.subscribers {
 				if connected {
 					go sub.JSON(message)
