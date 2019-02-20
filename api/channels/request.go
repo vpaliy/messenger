@@ -6,8 +6,6 @@ import (
 	"github.com/vpaliy/telex/utils"
 )
 
-type Binder struct{}
-
 type createChannelRequest struct {
 	api.Binder
 	Channel     string   `json:"channel" validate:"required"`

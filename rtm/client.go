@@ -10,7 +10,7 @@ import (
 type Client struct {
 	socket        *WSocket
 	uid           string
-	user          string
+	token         string
 	subscriptions map[string]*Subscription
 	mutex         sync.Mutex
 	send          chan interface{}
@@ -24,12 +24,13 @@ type Subscription struct {
 	broadcast chan<- *ResponseMessage
 }
 
-func NewClient(socket *WSocket, manager ChannelManager) *Client {
+func NewClient(socket *WSocket, manager ChannelManager, token string) *Client {
 	return &Client{
 		socket:        socket,
 		subscriptions: make(map[string]*Subscription),
 		send:          make(chan interface{}),
 		manager:       manager,
+		token:         token,
 	}
 }
 
@@ -129,6 +130,10 @@ func (c *Client) Leave(action *JoinAction) {
 }
 
 func (c *Client) Send(action *MessageAction) {
+	if err := c.manager.Post(action); err != nil {
+		// TODO: send an error message here
+		return
+	}
 	if sub, ok := c.subscriptions[action.Channel]; ok {
 		response := &ResponseMessage{Send, action.Content}
 		sub.broadcast <- response

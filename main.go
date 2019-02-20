@@ -18,7 +18,7 @@ func registerHTTPHandlers(g *echo.Group, hs ...api.Handler) {
 func registerRTM(e *echo.Echo, manager rtm.ChannelManager) {
 	e.GET("/ws", func(c echo.Context) error {
 		ws := rtm.NewWebSocket(rtm.DefaultWebSocketConfig)
-		client := rtm.NewClient(ws, manager)
+		client := rtm.NewClient(ws, manager, utils.GetToken(c))
 		return client.ServeHTTP(c.Response(), c.Request())
 	})
 }

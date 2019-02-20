@@ -103,6 +103,10 @@ func (h *Handler) JoinChannel(c echo.Context) error {
 	return c.JSON(http.StatusOK, newSubscriptionResponse(subscription))
 }
 
+func (h *Handler) LeaveChannel(c echo.Context) error {
+	return nil
+}
+
 func (h *Handler) SearchChannels(c echo.Context) error {
 	request := new(channelSearchRequest)
 	if err := request.Bind(c); err != nil {

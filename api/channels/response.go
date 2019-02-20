@@ -29,19 +29,8 @@ type channel struct {
 	Members     []string        `json:"members"`
 }
 
-// represents a user subscription to a channel
-type subscriptionResponse struct {
-	ID        uint            `json:"id"`
-	CreatedAt utils.Timestamp `json:"created_at"`
-	UpdatedAt utils.Timestamp `json:"updated_at"`
-	Private   bool            `json:"private"`
-	Snippet   string          `json:"snippet"`
-	Channel   uint            `json:"channel"`
-	Unread    int16           `json:"unread"`
-}
-
 // represents a channel info
-type channelResponse struct {
+type channelInfoResponse struct {
 	ID          uint            `json:"id"`
 	Name        string          `json:"name"`
 	CreatedAt   utils.Timestamp `json:"created_at"`
@@ -53,6 +42,17 @@ type channelResponse struct {
 	Archived    bool            `json:"archived"`
 	Creator     participant     `json:"creator"`
 	Members     []participant   `json:"members"`
+}
+
+// represents a user subscription to a channel
+type subscriptionResponse struct {
+	ID        uint            `json:"id"`
+	CreatedAt utils.Timestamp `json:"created_at"`
+	UpdatedAt utils.Timestamp `json:"updated_at"`
+	Private   bool            `json:"private"`
+	Snippet   string          `json:"snippet"`
+	Channel   uint            `json:"channel"`
+	Unread    int16           `json:"unread"`
 }
 
 type userSubscriptionsResponse struct {

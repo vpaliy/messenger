@@ -33,6 +33,14 @@ func GetUser(c echo.Context) *JWTUser {
 	return claims.User
 }
 
+func GetToken(c echo.Context) *jwt.Token {
+	return c.Get("user").(*jwt.Token)
+}
+
+func GetUserFromToken(token string) *JWTUser {
+	return nil
+}
+
 func CreateJWT(u *model.User) string {
 	claims := &JWTClaims{
 		&JWTUser{

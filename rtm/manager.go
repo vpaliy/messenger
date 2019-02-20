@@ -11,8 +11,8 @@ type clientEvent struct {
 }
 
 type ChannelManager interface {
-	Join(channel string, client *Client)
-	Leave(channel string, client *Client)
+	Join(string, *Client)
+	Leave(string, *Client)
 	Run()
 }
 

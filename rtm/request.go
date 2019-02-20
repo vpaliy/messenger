@@ -32,9 +32,8 @@ type JoinAction struct {
 }
 
 type MessageAction struct {
-	From    string `json:"id"`
-	Channel string `json:"channel"`
-	//Meta contains attachments, notify option, mentions, auth etc.
+	From    string                 `json:"id"`
+	Channel string                 `json:"channel"`
 	Meta    map[string]interface{} `json:"meta"`
 	Content interface{}            `json:"content"`
 }
@@ -50,6 +49,12 @@ type HelloAction struct {
 type TypingAction struct {
 	From    string `json:"id"`
 	Channel string `json:"channel"`
+}
+
+func (a *ActionRequest) DecodeAction() (interface{}, error) {
+	var value interface{}
+	err := mapstructure.Decode(a.Action, value)
+	return value, err
 }
 
 // TODO: find a better way to do this

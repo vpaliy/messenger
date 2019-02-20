@@ -30,6 +30,7 @@ func (h *Handler) Register(group *echo.Group) {
 	channels.POST(".create", h.CreateChannel)
 	channels.POST(".update", h.UpdateChannel)
 	channels.POST(".join", h.JoinChannel)
+	channels.POST(".leave", h.LeaveChannel)
 	channels.GET(".list", h.FetchChannels)
 	channels.GET(".info", h.FetchChannelInfo)
 	channels.GET(".search", h.SearchChannels)
@@ -38,4 +39,5 @@ func (h *Handler) Register(group *echo.Group) {
 	subscriptions.GET(".info", h.FetchSubscription)
 	subscriptions.POST(".mark", h.MarkSubscription)
 	subscriptions.POST(".join", h.JoinChannel)
+	subscriptions.POST(".leave", h.LeaveChannel)
 }
