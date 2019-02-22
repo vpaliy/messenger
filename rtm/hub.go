@@ -37,21 +37,17 @@ func (c *Hub) Run() {
 	for {
 		select {
 		case client := <-c.register:
-			// TODO: register in database
 			client.Subscribe(&Subscription{
 				c.name,
 				c.broadcast,
 			})
 			c.subscribers[client] = true
 		case client := <-c.unregister:
-			// TODO: register in database
 			client.Unsubscribe(c.name)
 			if _, ok := c.subscribers[client]; ok {
 				delete(c.subscribers, client)
 			}
 		case message := <-c.broadcast:
-			// TODO: handle this better
-			// TODO: put this change in the database
 			log.Println("hub.Run: broadcasting")
 			for sub, connected := range c.subscribers {
 				if connected {

@@ -10,7 +10,7 @@ import (
 )
 
 func (h *Handler) fetchChannel(c echo.Context) (*model.Channel, error) {
-	request := new(channelAction)
+	request := new(ChannelRequest)
 	if err := request.Bind(c); err != nil {
 		return nil, c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
@@ -25,15 +25,15 @@ func (h *Handler) fetchChannel(c echo.Context) (*model.Channel, error) {
 }
 
 func (h *Handler) CreateChannel(c echo.Context) error {
-	request := new(createChannelRequest)
+	request := new(CreateChannelRequest)
 	if err := request.Bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	channel := request.toChannel(utils.GetUser(c).ID)
+	channel := request.ToChannel(utils.GetUser(c).ID)
 	if err := h.channelStore.Create(channel); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	return c.JSON(http.StatusCreated, newChannelResponse(channel))
+	return c.JSON(http.StatusCreated, NewChannelResponse(channel))
 }
 
 func (h *Handler) UpdateChannel(c echo.Context) error {
@@ -46,15 +46,15 @@ func (h *Handler) UpdateChannel(c echo.Context) error {
 	if channel.IsCreator(utils.GetUser(c).ID) {
 		return c.JSON(http.StatusForbidden, utils.Forbidden())
 	}
-	request := new(updateChannelRequest)
+	request := new(UpdateChannelRequest)
 	if err := request.Bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	request.update(channel)
+	request.UpdateModel(channel)
 	if err := h.channelStore.Update(channel); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	return c.JSON(http.StatusOK, newChannelResponse(channel))
+	return c.JSON(http.StatusOK, NewChannelResponse(channel))
 }
 
 func (h *Handler) FetchChannelInfo(c echo.Context) error {
@@ -62,7 +62,7 @@ func (h *Handler) FetchChannelInfo(c echo.Context) error {
 	if channel == nil {
 		return err
 	}
-	return c.JSON(http.StatusOK, newChannelResponse(channel))
+	return c.JSON(http.StatusOK, NewChannelResponse(channel))
 }
 
 func (h *Handler) FetchChannels(c echo.Context) error {
@@ -75,7 +75,7 @@ func (h *Handler) FetchChannels(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	return c.JSON(http.StatusOK, newUserChannelsResponse(user, channels))
+	return c.JSON(http.StatusOK, NewUserChannelsResponse(user, channels))
 }
 
 func (h *Handler) FetchSubscriptions(c echo.Context) error {
@@ -87,7 +87,7 @@ func (h *Handler) FetchSubscriptions(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, utils.NewError(err))
 	}
-	return c.JSON(http.StatusOK, newUserSubscriptionsResponse(user, subscriptions))
+	return c.JSON(http.StatusOK, NewUserSubscriptionsResponse(user, subscriptions))
 }
 
 func (h *Handler) JoinChannel(c echo.Context) error {
@@ -100,7 +100,7 @@ func (h *Handler) JoinChannel(c echo.Context) error {
 	if err := h.subscriptionStore.Create(channel, subscription); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	return c.JSON(http.StatusOK, newSubscriptionResponse(subscription))
+	return c.JSON(http.StatusOK, NewSubscriptionResponse(subscription))
 }
 
 func (h *Handler) LeaveChannel(c echo.Context) error {
@@ -108,7 +108,7 @@ func (h *Handler) LeaveChannel(c echo.Context) error {
 }
 
 func (h *Handler) SearchChannels(c echo.Context) error {
-	request := new(channelSearchRequest)
+	request := new(ChannelSearchRequest)
 	if err := request.Bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
@@ -122,7 +122,7 @@ func (h *Handler) SearchChannels(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, utils.NewError(err))
 	}
 
-	return c.JSON(http.StatusOK, newChannelsResponse(channels))
+	return c.JSON(http.StatusOK, NewChannelsResponse(channels))
 }
 
 func (h *Handler) ArchiveChannel(c echo.Context) error {

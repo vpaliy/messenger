@@ -21,7 +21,7 @@ func (h *Handler) fetchChannel(ch string, c echo.Context) (*model.Channel, error
 }
 
 func (h *Handler) GetMessages(c echo.Context) error {
-	request := new(fetchMessagesRequest)
+	request := new(FetchMessagesRequest)
 	if err := request.Bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
@@ -45,11 +45,11 @@ func (h *Handler) GetMessages(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	return c.JSON(http.StatusOK, newFetchMessagesResponse(channel, messages))
+	return c.JSON(http.StatusOK, NewFetchMessagesResponse(channel, messages))
 }
 
 func (h *Handler) PostMessage(c echo.Context) error {
-	request := new(createMessageRequest)
+	request := new(CreateMessageRequest)
 	if err := request.Bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
@@ -64,18 +64,18 @@ func (h *Handler) PostMessage(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, utils.Forbidden())
 	}
 	// submit a message
-	message := request.createMessage(
+	message := request.ToMessage(
 		currentUser.ID, channel.ID,
 	)
 	// create message and send an error message if fails
 	if err := h.messageStore.Create(message); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	return c.JSON(http.StatusCreated, newCreateMessageResponse(message))
+	return c.JSON(http.StatusCreated, NewCreateMessageResponse(message))
 }
 
 func (h *Handler) Search(c echo.Context) error {
-	request := new(searchMessagesRequest)
+	request := new(SearchMessagesRequest)
 	if err := request.Bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
@@ -95,11 +95,11 @@ func (h *Handler) Search(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
-	return c.JSON(http.StatusOK, newFetchMessagesResponse(channel, messages))
+	return c.JSON(http.StatusOK, NewFetchMessagesResponse(channel, messages))
 }
 
 func (h *Handler) DeleteMessage(c echo.Context) error {
-	request := new(deleteMessageRequest)
+	request := new(DeleteMessageRequest)
 	if err := request.Bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}
@@ -125,7 +125,7 @@ func (h *Handler) DeleteMessage(c echo.Context) error {
 }
 
 func (h *Handler) EditMessage(c echo.Context) error {
-	request := new(editMessageRequest)
+	request := new(EditMessageRequest)
 	if err := request.Bind(c); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, utils.NewError(err))
 	}

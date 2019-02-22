@@ -25,7 +25,7 @@ type UpdateChannelRequest struct {
 	Private     *bool    `json:"private"`
 }
 
-type ChannnelRequest struct {
+type ChannelRequest struct {
 	api.Binder
 	Channel string `json:"channel" validate:"required"`
 }

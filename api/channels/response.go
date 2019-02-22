@@ -6,7 +6,7 @@ import (
 )
 
 // represents a subscriber to a channel (or the creator of a channel)
-type Participant struct {
+type participant struct {
 	ID       uint    `json:"id"`
 	Username string  `json:"username"`
 	Email    string  `json:"email"`
@@ -15,7 +15,7 @@ type Participant struct {
 }
 
 // represents a channel info
-type Channel struct {
+type channel struct {
 	ID          uint            `json:"id"`
 	Name        string          `json:"name"`
 	CreatedAt   utils.Timestamp `json:"created_at"`
@@ -30,7 +30,7 @@ type Channel struct {
 }
 
 // represents a channel info
-type ChannelInfoResponse struct {
+type ChannelResponse struct {
 	ID          uint            `json:"id"`
 	Name        string          `json:"name"`
 	CreatedAt   utils.Timestamp `json:"created_at"`
@@ -40,8 +40,8 @@ type ChannelInfoResponse struct {
 	Tags        []string        `json:"tags"`
 	Image       *string         `json:"image"`
 	Archived    bool            `json:"archived"`
-	Creator     Participant     `json:"creator"`
-	Members     []Participant   `json:"members"`
+	Creator     participant     `json:"creator"`
+	Members     []participant   `json:"members"`
 }
 
 // represents a user subscription to a channel
@@ -56,75 +56,21 @@ type SubscriptionResponse struct {
 }
 
 type UserSubscriptionsResponse struct {
-	User          Participant             `json:"user"`
+	User          participant             `json:"user"`
 	Subscriptions []*SubscriptionResponse `json:"subscriptions"`
 }
 
 type UserChannelsResponse struct {
-	User     Participant `json:"user"`
-	Channels []*Channel  `json:"channels"`
+	User     participant `json:"user"`
+	Channels []*channel  `json:"channels"`
 }
 
 type ChannelsResponse struct {
-	Channels []*Channel `json:"channels"`
+	Channels []*channel `json:"channels"`
 }
 
-type Message struct {
-	Text        string          `json:"text"`
-	Username    string          `json:"username"`
-	CreatedAt   utils.Timestamp `json:"timestamp"`
-	Attachments []Attachment    `json:"attachments"`
-}
-
-type CreateMessageResponse struct {
-	Channel string  `json:"channel"`
-	Message Message `json:"message"`
-}
-
-type FetchMessagesResponse struct {
-	Channel  string    `json:"channel"`
-	Messages []Message `json:"messages"`
-}
-
-func NewFetchMessagesResponse(channel *model.Channel, messages []*model.Message) *FetchMessagesResponse {
-	response := new(FetchMessagesResponse)
-	response.Channel = string(channel.ID)
-	response.Messages = make([]Message, len(messages))
-	for i, m := range messages {
-		response.Messages[i] = *NewMessageResponse(m)
-	}
-	return response
-}
-
-func NewMessageResponse(m *model.Message) *Message {
-	response := new(Message)
-	response.Text = m.Text
-	response.Username = m.User.Username
-	response.CreatedAt = utils.Timestamp(m.CreatedAt)
-	response.Attachments = make([]Attachment, len(m.Attachments))
-	for i, a := range m.Attachments {
-		response.Attachments[i] = Attachment{
-			Title:    a.Title,
-			Text:     a.Text,
-			ImageURL: a.ImageURL,
-			AudioURL: a.AudioURL,
-			VideoURL: a.VideoURL,
-			ThumbURL: a.ThumbURL,
-			Color:    a.Color,
-		}
-	}
-	return response
-}
-
-func NewCreateMessageResponse(m *model.Message) *CreateMessageResponse {
-	response := new(CreateMessageResponse)
-	response.Message = *NewMessageResponse(m)
-	response.Channel = string(m.ChannelID)
-	return response
-}
-
-func NewParticipant(u *model.User) Participant {
-	return Participant{
+func newParticipant(u *model.User) participant {
+	return participant{
 		ID:       u.ID,
 		Username: u.Username,
 		Email:    u.Email,
@@ -145,12 +91,12 @@ func NewSubscriptionResponse(s *model.Subscription) *SubscriptionResponse {
 	}
 }
 
-func newChannel(c *model.Channel) *Channel {
+func newChannel(c *model.Channel) *channel {
 	members := make([]string, len(c.Members))
 	for i, member := range c.Members {
 		members[i] = string(member.UserID)
 	}
-	return &Channel{
+	return &channel{
 		ID:          c.ID,
 		Name:        c.Name,
 		CreatorID:   c.CreatorID,
@@ -166,7 +112,7 @@ func newChannel(c *model.Channel) *Channel {
 }
 
 func NewChannelsResponse(cs []*model.Channel) *ChannelsResponse {
-	channels := make([]*Channel, len(cs))
+	channels := make([]*channel, len(cs))
 	for i, channel := range cs {
 		channels[i] = newChannel(channel)
 	}
@@ -199,7 +145,7 @@ func NewUserSubscriptionsResponse(u *model.User, subs []*model.Subscription) *Us
 
 func NewChannelResponse(c *model.Channel) *ChannelResponse {
 	users := c.GetUsers()
-	members := make([]Participant, len(users))
+	members := make([]participant, len(users))
 	for i, member := range users {
 		members[i] = newParticipant(member)
 	}

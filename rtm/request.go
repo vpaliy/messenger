@@ -1,6 +1,7 @@
 package rtm
 
 import (
+	"encoding/json"
 	"github.com/mitchellh/mapstructure"
 	"github.com/vpaliy/telex/api/channels"
 	"github.com/vpaliy/telex/api/messages"
