@@ -8,21 +8,16 @@ import (
 
 type Content interface{}
 
-type TokenizedChannelRequest struct {
-	Token string
-	ChannelRequest
-}
-
-type TokenizedPostRequest struct {
-	Token string
-	CreateMessageRequest
+type Context struct {
+	Token   string
+	Request interface{}
 }
 
 type Repository interface {
 	FetchChannel(string) (*model.Channel, error)
-	JoinChannel(*TokenizedChannelRequest) (Content, error)
-	LeaveChannel(*TokenizedChannelRequest) (Content, error)
-	PostMessage(*TokenizedPostRequest) (Content, error)
+	JoinChannel(Context) (Content, error)
+	LeaveChannel(Context) (Content, error)
+	PostMessage(Context) (Content, error)
 }
 
 type repository struct {
@@ -36,14 +31,15 @@ func (r *repository) FetchChannel(ch string) (*model.Channel, error) {
 	return r.channelStore.Fetch(ch)
 }
 
-func (r *repository) PostMessage(request *TokenizedPostRequest) (Content, error) {
+func (r *repository) PostMessage(ctx Context) (Content, error) {
+	request := ctx.Request.(*ChannelRequest)
 	channel, err := r.channelStore.Fetch(request.Channel)
 	// if there is an error
 	if channel == nil || err != nil {
 		return nil, err
 	}
 	// check if the user is subscribed to the chat
-	currentUser := utils.GetUserFromToken(request.Token)
+	currentUser := utils.GetUserFromToken(ctx.Token)
 	if !channel.HasUser(currentUser.ID) {
 		// TODO: return an error that the user is not here
 		return nil, nil
@@ -60,14 +56,15 @@ func (r *repository) PostMessage(request *TokenizedPostRequest) (Content, error)
 	return message, nil
 }
 
-func (r *repository) JoinChannel(request *TokenizedChannelRequest) (Content, error) {
+func (r *repository) JoinChannel(ctx Context) (Content, error) {
+	request := ctx.Request.(*ChannelRequest)
 	channel, err := r.channelStore.Fetch(request.Channel)
 	// notify about the error
 	if channel == nil || err != nil {
 		return nil, err
 	}
 	// get the user from JWT token
-	user := utils.GetUserFromToken(request.Token)
+	user := utils.GetUserFromToken(ctx.Token)
 	// create a subscription
 	subscription := channel.CreateSubscription(user.ID)
 	// create it
@@ -77,6 +74,20 @@ func (r *repository) JoinChannel(request *TokenizedChannelRequest) (Content, err
 	return subscription, nil
 }
 
-func (r *repository) LeaveChannel(request *TokenizedChannelRequest) (Content, error) {
-	return nil, nil
+func (r *repository) LeaveChannel(ctx Context) (Content, error) {
+	request := ctx.Request.(*ChannelRequest)
+	channel, err := r.channelStore.Fetch(request.Channel)
+	// notify about the error
+	if channel == nil || err != nil {
+		return nil, err
+	}
+	// get the user from JWT token
+	user := utils.GetUserFromToken(ctx.Token)
+	// create a subscription
+	subscription := channel.CreateSubscription(user.ID)
+	// create it
+	if err := r.subscriptionStore.Create(channel, subscription); err != nil {
+		return nil, err
+	}
+	return subscription, nil
 }

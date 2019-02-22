@@ -9,7 +9,6 @@ import (
 
 type Client struct {
 	socket        *WSocket
-	uid           string
 	token         string
 	subscriptions map[string]*Subscription
 	mutex         sync.Mutex
@@ -118,38 +117,38 @@ func (c *Client) JSON(message *ResponseMessage) {
 }
 
 func (c *Client) Join(req *ChannelRequest) {
-	/* response, err := c.dispatcher.Leave(channelEvent{c, req.Channel})
-	if err != nil {
+	event := channelEvent{c.token, c, req}
+	if err := c.dispatcher.Join(event); err != nil {
 		c.JSONError(err)
-	} else {
-		c.JSON(response)
-	} */
+	}
 }
 
 func (c *Client) Leave(req *ChannelRequest) {
-	/* response, err := c.dispatcher.Leave(channelEvent{c, req.Channel})
-	if err != nil {
+	event := channelEvent{c.token, c, req}
+	if err := c.dispatcher.Leave(event); err != nil {
 		c.JSONError(err)
-	} else {
-		c.JSON(response)
-	} */
+	}
 }
 
 func (c *Client) Send(req *CreateMessageRequest) {
 	if sub, ok := c.subscriptions[req.Channel]; ok {
-		response, err := c.dispatcher.Post(postEvent{c.token, req})
-		if err != nil {
-			return
+		event := postEvent{c.token, c, req, sub}
+		if err := c.dispatcher.Post(event); err != nil {
+			c.JSONError(err)
 		}
-		//sub.broadcast <- response
 	}
-	// TODO: handle the case when the user is not subscribed to a chat
 }
 
-func (c *Client) Typing(action *ChannelRequest) {
-	// TODO: handle this
+func (c *Client) Typing(req *ChannelRequest) {
+	event := channelEvent{c.token, c, req}
+	if err := c.dispatcher.Typing(event); err != nil {
+		c.JSONError(err)
+	}
 }
 
-func (c *Client) Load(action *FetchMessagesRequest) {
-	// TODO: handle this
+func (c *Client) Load(req *FetchMessagesRequest) {
+	event := loadEvent{c.token, c, req}
+	if err := c.dispatcher.Load(event); err != nil {
+		c.JSONError(err)
+	}
 }
