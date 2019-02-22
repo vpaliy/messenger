@@ -33,8 +33,8 @@ func GetUser(c echo.Context) *JWTUser {
 	return claims.User
 }
 
-func GetToken(c echo.Context) *jwt.Token {
-	return c.Get("user").(*jwt.Token)
+func GetToken(c echo.Context) string {
+	return c.Get("user").(*jwt.Token).Raw
 }
 
 func GetUserFromToken(token string) *JWTUser {

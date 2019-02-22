@@ -15,6 +15,7 @@ type Context struct {
 
 type Repository interface {
 	FetchChannel(string) (*model.Channel, error)
+	FetchMessages(Context) (Content, error)
 	JoinChannel(Context) (Content, error)
 	LeaveChannel(Context) (Content, error)
 	PostMessage(Context) (Content, error)
@@ -23,8 +24,12 @@ type Repository interface {
 type repository struct {
 	userStore         store.UserStore
 	messageStore      store.MessageStore
-	subscriptionStore store.MessageStore
+	subscriptionStore store.SubscriptionStore
 	channelStore      store.ChannelStore
+}
+
+func NewRepository(us store.UserStore, ms store.MessageStore, ss store.SubscriptionStore, cs store.ChannelStore) Repository {
+	return &repository{us, ms, ss, cs}
 }
 
 func (r *repository) FetchChannel(ch string) (*model.Channel, error) {
@@ -32,7 +37,7 @@ func (r *repository) FetchChannel(ch string) (*model.Channel, error) {
 }
 
 func (r *repository) PostMessage(ctx Context) (Content, error) {
-	request := ctx.Request.(*ChannelRequest)
+	request := ctx.Request.(*CreateMessageRequest)
 	channel, err := r.channelStore.Fetch(request.Channel)
 	// if there is an error
 	if channel == nil || err != nil {
@@ -90,4 +95,8 @@ func (r *repository) LeaveChannel(ctx Context) (Content, error) {
 		return nil, err
 	}
 	return subscription, nil
+}
+
+func (r *repository) FetchMessages(ctx Context) (Content, error) {
+	return nil, nil
 }

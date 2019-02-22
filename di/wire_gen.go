@@ -6,6 +6,7 @@
 package di
 
 import (
+	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
 	"github.com/vpaliy/telex/api/channels"
 	"github.com/vpaliy/telex/api/messages"
@@ -19,6 +20,16 @@ import (
 )
 
 // Injectors from di.go:
+
+func InitializeDispatcher(database *gorm.DB) rtm.Dispatcher {
+	userStore := gorm2.NewUserStore(database)
+	messageStore := gorm2.NewMessageStore(database)
+	subscriptionStore := gorm2.NewSubscriptionStore(database)
+	channelStore := gorm2.NewChannelStore(database)
+	repository := rtm.NewRepository(userStore, messageStore, subscriptionStore, channelStore)
+	dispatcher := rtm.NewDispatcher(repository)
+	return dispatcher
+}
 
 func InitializeChannelHandler(database *gorm.DB) *channels.Handler {
 	channelStore := gorm2.NewChannelStore(database)
@@ -43,11 +54,4 @@ func InitializeMessageHandler(database *gorm.DB) *messages.Handler {
 
 // di.go:
 
-func NewRepository() *rtm.TestRepository {
-	return &rtm.TestRepository{}
-}
-
-func InitializeChannelManager() rtm.ChannelManager {
-
-	return rtm.NewChannelManager(NewRepository())
-}
+var StoreSet = wire.NewSet(gorm2.NewSubscriptionStore, gorm2.NewChannelStore, gorm2.NewUserStore, gorm2.NewMessageStore)

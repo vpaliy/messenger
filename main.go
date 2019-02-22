@@ -7,6 +7,7 @@ import (
 	"github.com/vpaliy/telex/di"
 	"github.com/vpaliy/telex/router"
 	"github.com/vpaliy/telex/rtm"
+	"github.com/vpaliy/telex/utils"
 )
 
 func registerHTTPHandlers(g *echo.Group, hs ...api.Handler) {
@@ -15,10 +16,10 @@ func registerHTTPHandlers(g *echo.Group, hs ...api.Handler) {
 	}
 }
 
-func registerRTM(e *echo.Echo, manager rtm.ChannelManager) {
+func registerRTM(e *echo.Echo, dispatcher rtm.Dispatcher) {
 	e.GET("/ws", func(c echo.Context) error {
 		ws := rtm.NewWebSocket(rtm.DefaultWebSocketConfig)
-		client := rtm.NewClient(ws, manager, utils.GetToken(c))
+		client := rtm.NewClient(ws, dispatcher, utils.GetToken(c))
 		return client.ServeHTTP(c.Response(), c.Request())
 	})
 }
@@ -39,9 +40,9 @@ func main() {
 		di.InitializeChannelHandler(database),
 		di.InitializeMessageHandler(database),
 	)
-	manager := di.InitializeChannelManager()
-	registerRTM(e, manager)
 
-	go manager.Run()
+	dispatcher := di.InitializeDispatcher(database)
+	registerRTM(e, dispatcher)
+
 	e.Logger.Fatal(e.Start("127.0.0.1:8080"))
 }

@@ -18,10 +18,10 @@ const (
 )
 
 type (
-	CreateMessageRequest messages.CreateMessageRequest
-	FetchMessagesRequest messages.FetchMessagesRequest
-	EditMessageRequest   messages.EditMessageRequest
-	ChannelRequest       channels.ChannelRequest
+	CreateMessageRequest = messages.CreateMessageRequest
+	FetchMessagesRequest = messages.FetchMessagesRequest
+	EditMessageRequest   = messages.EditMessageRequest
+	ChannelRequest       = channels.ChannelRequest
 )
 
 type WSEvent struct {
@@ -45,5 +45,5 @@ func (event *WSEvent) Unmarshal(raw []byte) error {
 }
 
 func (event *WSEvent) DecodeAction(action interface{}) error {
-	return mapstructure.Decode(event.Action, action)
+	return mapstructure.Decode(event.Request, action)
 }

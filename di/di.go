@@ -13,22 +13,20 @@ import (
 	store "github.com/vpaliy/telex/store/gorm"
 )
 
-func NewRepository() *rtm.TestRepository {
-	return &rtm.TestRepository{}
-}
+var StoreSet = wire.NewSet(
+	store.NewSubscriptionStore,
+	store.NewChannelStore,
+	store.NewUserStore,
+	store.NewMessageStore,
+)
 
-func InitializeChannelManager() rtm.ChannelManager {
-	//  wire.Build(NewRepository)
-	return rtm.NewChannelManager(NewRepository())
+func InitializeDispatcher(database *gorm.DB) rtm.Dispatcher {
+	wire.Build(rtm.NewRepository, rtm.NewDispatcher, StoreSet)
+	return nil
 }
 
 func InitializeChannelHandler(database *gorm.DB) *channels.Handler {
-	wire.Build(
-		channels.NewHandler,
-		store.NewSubscriptionStore,
-		store.NewChannelStore,
-		store.NewUserStore,
-	)
+	wire.Build(channels.NewHandler, StoreSet)
 	return nil
 }
 
